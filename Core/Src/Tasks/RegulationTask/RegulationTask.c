@@ -15,6 +15,35 @@
 #include "../../Expander/mcp23017.h"
 #include "../../ConfigEEPROM/config.h"
 
+typedef union{
+	struct{
+		uint8_t input1 	:1;
+		uint8_t input2 	:1;
+		uint8_t input3 	:1;
+		uint8_t input4 	:1;
+		uint8_t input5 	:1;
+		uint8_t input6 	:1;
+		uint8_t input7 	:1;
+		uint8_t input8 	:1;
+		uint8_t input10	:1;
+		uint8_t input9 	:1;
+		uint8_t output1 :1;
+		uint8_t output2 :1;
+		uint8_t output3 :1;
+		uint8_t output4 :1;
+		uint8_t output5 :1;
+		uint8_t output6 :1;
+	}signals;
+
+	struct{
+		uint8_t portA;
+		uint8_t portB;
+	}ports;
+
+	uint8_t bytes[2];
+	uint16_t word;
+} Expander_signals_t;
+
 extern osThreadId PowerRegulationHandle;
 
 extern TIM_HandleTypeDef htim1, htim2, htim3;
@@ -22,6 +51,64 @@ extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart2;
 
 struct counter_data counter;
+MCP23017_HandleTypeDef expander1;
+Expander_signals_t IOsignals;
+
+#define DEC_PLACES 					10.0
+#define ACUMULATED_POWER_FACTOR 	0
+#define NET_POWER 					0
+#define PHASE_POWER 				0
+#define PHASE_POWER_COEFF 			0
+#define CO_HEATER_PHASE_POWER 		1
+#define CWU_HEATER_PHASE_POWER 		1
+
+#define BOJLER_HIGH 				0
+#define BOJLER_LOW 					0
+
+#define CO_HIGH						0
+#define CO_LOW 						0
+
+#define MAIN_SWITCH 				0
+#define MAIN_SWITCH_SET 			0
+#define MAIN_SWITCH_RESET 			0
+
+#define CO_FUSE 					0
+#define	CO_FUSE_SET					0
+#define CO_FUSE_RESET				0
+
+#define CWU_FUSE 					0
+#define CWU_FUSE_SET				0
+#define CWU_FUSE_RESET				0
+
+#define CO_HEATER					0
+#define CO_HEATER_SET				0
+#define CO_HEATER_RESET				0
+
+#define CWU_HEATER					0
+#define CWU_HEATER_SET				0
+#define CWU_HEATER_RESET			0
+
+#define CO_CONTACTOR_ERROR			0
+#define CO_CONTACTOR_ERROR_SET		0
+#define CO_CONTACTOR_ERROR_RESET	0
+
+#define CWU_CONTACTOR_ERROR			0
+#define CWU_CONTACTOR_ERROR_SET		0
+#define CWU_CONTACTOR_ERROR_RESET	0
+
+#define EXP_STATE 					0
+
+#define MAIN_SW_EXPPIN 				0
+#define CWU_F_EXPPIN 				1
+#define CO_F_EXPPIN 				2
+#define CWU_C_EXPPIN 				3
+#define CO_C_EXPPIN 				4
+
+#define MAIN_SW_STATE 				(IOsignals.signals.input1)
+#define CWU_F_STATE 				(IOsignals.signals.input2)
+#define CO_F_STATE 					(IOsignals.signals.input3)
+#define CWU_C_STATE 				(IOsignals.signals.input9)
+#define CO_C_STATE 					(IOsignals.signals.input10)
 
 float fModbusParseFloat (uint8_t* in_data){
 	union float_bytes buffor;
@@ -41,10 +128,11 @@ void RegulationTask(void const * argument)
 {
   /* USER CODE BEGIN PowerRegulation */
 	ModbusHandler mbPort;
-	MCP23017_HandleTypeDef expander1;
+
 	RegulationConfig_t parameters;
 	CONFStatus_t configStatus;
 	TickType_t xLastWakeTime;
+
 	const TickType_t xDelay = 1000;
 
 	//Gotowe dane z licznika
@@ -92,9 +180,14 @@ void RegulationTask(void const * argument)
 	//Uchwyty i inne struktury
 	mbPort.task =  xTaskGetCurrentTaskHandle();
 
-	mcp23017_init(&expander1, &hi2c1, 0x20);
+	mcp23017_init(&expander1, &hi2c1, 0b0100111);
 	mcp23017_iodir(&expander1, 1, 0xFF);
-	mcp23017_iodir(&expander1, 0, 0);
+	mcp23017_iodir(&expander1, 0, 0x03);
+	expander1.gpio[0] = 0b11111100;
+	mcp23017_write_gpio(&expander1, 0);
+	vTaskDelay(1000);
+	expander1.gpio[0] = 0;
+	mcp23017_write_gpio(&expander1, 0);
 	vModbusInit(&mbPort, &huart2, 100);
 
 #ifdef __DEBUG
@@ -103,8 +196,9 @@ void RegulationTask(void const * argument)
 	for(;;){
 
 		mcp23017_read_gpio(&expander1, 1);
-
+		memcpy(&IOsignals, &expander1.gpio, 2);
 		receieves = 0;
+
 		if(MAIN_SW_STATE == GPIO_PIN_SET) MAIN_SWITCH_SET;
 		else MAIN_SWITCH_RESET;
 
@@ -281,6 +375,8 @@ void RegulationTask(void const * argument)
 		TIM1 -> CCR2 = counter.CO_heater_PWM[1];
 		TIM1 -> CCR3 = counter.CO_heater_PWM[2];
 
+		memcpy(&expander1.gpio, &IOsignals, 2);
+		mcp23017_write_gpio(&expander1, MCP23017_PORTA);
 		vTaskDelayUntil(&xLastWakeTime, xDelay);
 	}
   /* USER CODE END PowerRegulation */

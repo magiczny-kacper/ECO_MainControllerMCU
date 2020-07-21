@@ -54,65 +54,7 @@
 #define TEMPERATURE_ADDRESS 		2
 #define SENSOR_NUMBER 				10
 
-/*
- * TODO: Define values.
- */
 
-#define DEC_PLACES 					10.0
-#define ACUMULATED_POWER_FACTOR 	0
-#define NET_POWER 					0
-#define PHASE_POWER 				0
-#define PHASE_POWER_COEFF 			0
-#define CO_HEATER_PHASE_POWER 		1
-#define CWU_HEATER_PHASE_POWER 		1
-
-#define BOJLER_HIGH 				0
-#define BOJLER_LOW 					0
-
-#define CO_HIGH						0
-#define CO_LOW 						0
-
-#define MAIN_SWITCH 				0
-#define MAIN_SWITCH_SET 			0
-#define MAIN_SWITCH_RESET 			0
-
-#define CO_FUSE 					0
-#define	CO_FUSE_SET					0
-#define CO_FUSE_RESET				0
-
-#define CWU_FUSE 					0
-#define CWU_FUSE_SET				0
-#define CWU_FUSE_RESET				0
-
-#define CO_HEATER					0
-#define CO_HEATER_SET				0
-#define CO_HEATER_RESET				0
-
-#define CWU_HEATER					0
-#define CWU_HEATER_SET				0
-#define CWU_HEATER_RESET			0
-
-#define CO_CONTACTOR_ERROR			0
-#define CO_CONTACTOR_ERROR_SET		0
-#define CO_CONTACTOR_ERROR_RESET	0
-
-#define CWU_CONTACTOR_ERROR			0
-#define CWU_CONTACTOR_ERROR_SET		0
-#define CWU_CONTACTOR_ERROR_RESET	0
-
-#define EXP_STATE 					0
-
-#define MAIN_SW_EXPPIN 				0
-#define CWU_F_EXPPIN 				1
-#define CO_F_EXPPIN 				2
-#define CWU_C_EXPPIN 				3
-#define CO_C_EXPPIN 				4
-
-#define MAIN_SW_STATE 				((EXP_STATE >> MAIN_SW_EXPPIN) & 1)
-#define CWU_F_STATE 				((EXP_STATE >> CWU_F_EXPPIN) & 1)
-#define CO_F_STATE 					((EXP_STATE >> CO_F_EXPPIN) & 1)
-#define CWU_C_STATE 				((EXP_STATE >> CWU_C_EXPPIN) & 1)
-#define CO_C_STATE 					((EXP_STATE >> CO_C_EXPPIN) & 1)
 
 
 union float_bytes {
