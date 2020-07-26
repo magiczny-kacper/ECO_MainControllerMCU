@@ -1,4 +1,5 @@
 "Core/Src/AnalogOut/DAC.o"
+"Core/Src/CLI/CLI.o"
 "Core/Src/ConfigEEPROM/config.o"
 "Core/Src/ConfigEEPROM/drv_EEPROM.o"
 "Core/Src/Ethernet/W5500/w5500.o"
@@ -59,3 +60,4 @@
 "Middlewares/Third_Party/FreeRTOS/Source/timers.o"
 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.o"
 "Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o"
+"Middlewares/Third_Party/FreeRTOS_CLI/FreeRTOS_CLI.o"

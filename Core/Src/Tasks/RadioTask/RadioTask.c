@@ -40,7 +40,7 @@ void RadioTask(void const * argument)
 	//nRF24_SetRXAddress(1, "_ECOI");
 	//nRF24_SetTXAddress("_ECOM");
 	//nRF24_TX_Mode();
-	nRF24_SendData(ecoIOinitMSG, sizeof(ecoIOinitMSG));
+	nRF24_SendData((uint8_t*)ecoIOinitMSG, sizeof(ecoIOinitMSG));
 
   /* Infinite loop */
   for(;;)

@@ -450,7 +450,7 @@ static void MX_RTC_Init(void)
   }
 
   /* USER CODE BEGIN Check_RTC_BKUP */
-    
+    return;
   /* USER CODE END Check_RTC_BKUP */
 
   /** Initialize RTC and set the Time and Date 
@@ -901,11 +901,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : ETH_INT_Pin */
-  GPIO_InitStruct.Pin = ETH_INT_Pin;
+  /*Configure GPIO pins : ETH_INT_Pin PG24V_Pin */
+  GPIO_InitStruct.Pin = ETH_INT_Pin|PG24V_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(ETH_INT_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DAC_CS_Pin FLASH_CS_Pin NRF_CS_Pin NRF_CE_Pin */
   GPIO_InitStruct.Pin = DAC_CS_Pin|FLASH_CS_Pin|NRF_CS_Pin|NRF_CE_Pin;
@@ -913,12 +913,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PG24V_Pin */
-  GPIO_InitStruct.Pin = PG24V_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(PG24V_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : NRF_INT_Pin */
   GPIO_InitStruct.Pin = NRF_INT_Pin;
@@ -1048,7 +1042,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	}
 
 	if(GPIO_Pin & ETH_INT_Pin){
-		//vTaskNotifyGiveFromISR(EthernetHandle, NULL);
+		vTaskNotifyGiveFromISR(EthernetHandle, NULL);
+	}
+
+	if(GPIO_Pin & PG24V_Pin){
+		HAL_RTCEx_BKUPWrite(&hrtc, 0, 123456);
 	}
 }
 

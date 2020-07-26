@@ -249,6 +249,8 @@ int8_t  disconnect(uint8_t sn);
  */
 int32_t send(uint8_t sn, uint8_t * buf, uint16_t len);
 
+void ClrSiS (uint8_t sn);
+
 /**
  * @ingroup WIZnet_socket_APIs
  * @brief	Receive data from the connected peer.

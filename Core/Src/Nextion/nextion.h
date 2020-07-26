@@ -8,12 +8,7 @@
 #ifndef SRC_NEXTION_NEXTION_H_
 #define SRC_NEXTION_NEXTION_H_
 
-struct nextion{
-	uint8_t display;
-	uint8_t last_display;
-	uint8_t sleep;
-	uint8_t ready;
-};
+
 
 #include <stdbool.h>
 

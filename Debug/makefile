@@ -8,6 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include Middlewares/Third_Party/FreeRTOS_CLI/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/subdir.mk
@@ -28,6 +29,7 @@ RM := rm -rf
 -include Core/Src/Ethernet/W5500/subdir.mk
 -include Core/Src/Ethernet/subdir.mk
 -include Core/Src/ConfigEEPROM/subdir.mk
+-include Core/Src/CLI/subdir.mk
 -include Core/Src/AnalogOut/subdir.mk
 -include Core/Src/subdir.mk
 -include subdir.mk

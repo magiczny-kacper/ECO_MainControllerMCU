@@ -45,7 +45,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-extern UARTDMA_HandleTypeDef nextion_small_comm;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -266,6 +266,7 @@ void EXTI15_10_IRQHandler(void)
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
 
   /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
@@ -279,7 +280,7 @@ void DMA2_Stream1_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
 	UARTDMA_DmaIrqHandler(&nextion_big_comm);
-		return;
+	return;
   /* USER CODE END DMA2_Stream1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart6_rx);
   /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */

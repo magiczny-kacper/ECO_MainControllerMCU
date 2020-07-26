@@ -20,11 +20,12 @@ static CONFStatus_t Config_CheckData (void);
 
 CONFStatus_t Config_Init(I2C_HandleTypeDef* iic){
 	CONFStatus_t retval = 0;
-	uint32_t crc;
+
 
 	configuartionStatus = CONF_STAT_INIT;
 
 	retval |= EE_Init(iic);
+	EE_Erease();
 	retval |= EE_Read(&configuration, 0, CONFIG_BYTES_LEN);
 
 	retval |= Config_CheckData();

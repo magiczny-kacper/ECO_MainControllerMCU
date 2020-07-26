@@ -10,6 +10,7 @@
 #include "stm32f4xx_hal.h"
 
 #include "FreeRTOS.h"
+#include "task.h"
 #include "nRF24_Defs.h"
 #include "../RingBuffer/ring_buffer.h"
 
@@ -25,7 +26,7 @@ static volatile uint8_t Nrf24InterruptFlag, Nrf24RXReadyDataFlag;
 #if (NRF24_USE_INTERRUPT == 1)
 #if (NRF24_USE_RINGBUFFER == 1)
 static uint8_t Nrf24TXFreeFlag;
-static RingBuffer *TXBuffer, *RXBuffer;
+RingBuffer TXBuffer, RXBuffer;
 #endif
 #if (NRF24_USE_RINGBUFFER == 0)
 static uint8_t RXBuffer[32];
@@ -484,12 +485,12 @@ nRF24_TX_Status nRF24_SendPacket(uint8_t* Data, uint8_t Size)
 #if (NRF24_USE_RINGBUFFER == 1)
 uint8_t nRF24_IsSomtehingToRead(void)
 {
-	return RB_ElementsAvailable(RXBuffer)?1:0;
+	return RB_ElementsAvailable(&RXBuffer)?1:0;
 }
 
 uint8_t nRF24_IsSomtehingToSend(void)
 {
-	return RB_ElementsAvailable(TXBuffer)?1:0;
+	return RB_ElementsAvailable(&TXBuffer)?1:0;
 }
 #endif
 
@@ -599,7 +600,7 @@ void nRF24_ReceiveData(void)
 
 		for(i = 0; i < DataCounter; i++)
 		{
-			RB_WriteToBuffer(RXBuffer, RXPacket[i]);
+			RB_WriteToBuffer(&RXBuffer, RXPacket[i]);
 		}
 
 	}while(!nRF24_IsRxEmpty());
@@ -627,7 +628,7 @@ nRF24_RX_Status nRF24_ReadData(uint8_t *Data, uint8_t *Size)
 	  if(nRF24_RXAvailable())
 	  {
 #if (NRF24_USE_RINGBUFFER == 1)
-		while(RB_OK == RB_ReadFromBuffer(RXBuffer, &Data[i]))
+		while(RB_OK == RB_ReadFromBuffer(&RXBuffer, &Data[i]))
 		{
 			i++;
 		}

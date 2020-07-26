@@ -381,6 +381,9 @@ int32_t send(uint8_t sn, uint8_t * buf, uint16_t len)
    return (int32_t)len;
 }
 
+void ClrSiS (uint8_t sn){
+	sock_is_sending &= ~(1 << sn);
+}
 
 int32_t recv(uint8_t sn, uint8_t * buf, uint16_t len)
 {

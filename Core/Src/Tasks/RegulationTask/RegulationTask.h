@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../ConfigEEPROM/config.h"
+
 /*
  * F&F energy meter modbus registers addresses
  */
@@ -62,21 +64,49 @@ union float_bytes {
 	uint8_t bytes[4];
 };
 
-struct counter_data{
+typedef union{
+	struct{
+		uint8_t input10	:1;
+		uint8_t input9 	:1;
+		uint8_t output6 :1;
+		uint8_t output5 :1;
+		uint8_t output4 :1;
+		uint8_t output3 :1;
+		uint8_t output2 :1;
+		uint8_t output1 :1;
+
+		uint8_t input8 	:1;
+		uint8_t input7 	:1;
+		uint8_t input6 	:1;
+		uint8_t input5 	:1;
+		uint8_t input4 	:1;
+		uint8_t input3 	:1;
+		uint8_t input2 	:1;
+		uint8_t input1 	:1;
+	}signals;
+
+	struct{
+		uint8_t portA;
+		uint8_t portB;
+	}ports;
+
+	uint8_t bytes[2];
+	uint16_t word;
+} Expander_signals_t;
+
+typedef union{
+	uint8_t MainSwitch_State 	:1;
+	uint8_t CWUHeaterStateOut 	:1;
+	uint8_t COHeaterStateOut 	:1;
+	uint8_t CWUHeaterError 		:1;
+	uint8_t COHeaterError 		:1;
+} ControlWord_t;
+
+typedef struct {
 	uint8_t counter_present;
 	uint8_t last_counter_present;
 	uint8_t temperatures_present;
 	uint8_t last_temperatures_pesent;
-
-	uint8_t control_word;
-
-	uint8_t main_switch;
-	uint8_t CO_fuse;
-	uint8_t CWU_fuse;
-
-	uint8_t CWU_heating;
-	uint8_t CO_heating;
-
 	uint16_t CWU_heater_PWM[3];
 	uint16_t CO_heater_PWM[3];
 	float CO_heater_max_power[3];
@@ -87,8 +117,18 @@ struct counter_data{
 	float power_in_buffor;
 	float CWU_temps[2];
 	float CO_temps[4];
-};
+} counter_data;
+
+typedef struct{
+	counter_data counter;
+	ControlWord_t ControlWord;
+	Expander_signals_t IOsignals;
+	CONFStatus_t configStatus;
+	RegulationConfig_t parameters;
+} RegTaskData_t;
 
 void RegulationTask(void const * argument);
+
+void RegulationTask_GetData (RegTaskData_t* destination);
 
 #endif /* SRC_TASKS_REGULATIONTASK_REGULATIONTASK_H_ */

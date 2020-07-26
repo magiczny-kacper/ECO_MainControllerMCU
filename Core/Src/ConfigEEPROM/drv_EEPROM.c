@@ -5,8 +5,11 @@
  *      Author: Kacper
  */
 
+#include <string.h>
+
 #include "drv_EEPROM.h"
 #include "FreeRTOS.h"
+#include "task.h"
 #include "stm32f4xx_hal_i2c.h"
 
 I2C_HandleTypeDef* ee_iic;
@@ -33,22 +36,31 @@ EE_StatusTypeDef EE_Read (void* data, uint8_t addr, uint32_t len){
 		return EE_ERR_TIMEOUT;
 	}else if(i2cStatus == HAL_BUSY){
 		return EE_ERR_BUSY;
+	}else{
+		return EE_ERR_TIMEOUT;
 	}
 }
 
-EE_StatusTypeDef EE_Write (void* data, uint8_t addr, uint32_t len){
+EE_StatusTypeDef EE_Write (void* data, uint32_t addr, uint32_t len){
 	EE_StatusTypeDef retval = EE_ERR_NULL;
 	HAL_StatusTypeDef i2cStatus;
 	uint8_t* dataBuf;
 	uint32_t datalen, i, pages, rest, bytelen;
+	uint8_t eeBlock, eeAddr;
 
-	if(data == NULL || len <= 0) return retval;
+	if(data == NULL || len <= 0 || len >= EE_SIZE) return retval;
+
+	eeBlock = addr / EE_BLOCK_SIZE;
+	eeAddr = addr % EE_BLOCK_SIZE;
 
 	dataBuf = (uint8_t*)data;
 	datalen = len;
 	if(len <= EE_PAGE_SIZE){
-		i2cStatus= HAL_I2C_Mem_Write(ee_iic, EE_ADDR, addr, 1, dataBuf, len, EE_BYTE_WRITE_TIME * (len + 2));
-		if(i2cStatus == HAL_OK) retval = EE_OK;
+		i2cStatus= HAL_I2C_Mem_Write(ee_iic, EE_ADDR + eeBlock, eeAddr, 1, dataBuf, len, EE_BYTE_WRITE_TIME * (len + 2));
+		if(i2cStatus == HAL_OK){
+			vTaskDelay(EE_BYTE_WRITE_TIME * (len + 1));
+			retval = EE_OK;
+		}
 		else if(i2cStatus == HAL_ERROR) retval = EE_ERR_TIMEOUT;
 		else if(i2cStatus == HAL_BUSY) retval = EE_ERR_BUSY;
 	}else{
@@ -71,6 +83,18 @@ EE_StatusTypeDef EE_Write (void* data, uint8_t addr, uint32_t len){
 				break;
 			}
 		}
+	}
+	return retval;
+}
+
+EE_StatusTypeDef EE_Erease (void){
+	uint32_t i;
+	int32_t retval = 0;
+	uint8_t blankData[16];
+	memset(blankData, 255, 16);
+
+	for(i = 0; i < EE_SIZE; i += 16){
+		retval |= EE_Write(blankData, i, 16);
 	}
 	return retval;
 }

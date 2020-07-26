@@ -53,6 +53,7 @@
 /* USER CODE BEGIN 0 */
   extern void configureTimerForRunTimeStats(void);
   extern unsigned long getRunTimeCounterValue(void);
+#define configCOMMAND_INT_MAX_OUTPUT_SIZE 		 128
 /* USER CODE END 0 */
 #endif
 #define configENABLE_FPU                         1
@@ -146,8 +147,9 @@ standard names. */
 
 /* USER CODE BEGIN 2 */    
 /* Definitions needed when configGENERATE_RUN_TIME_STATS is on */
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS configureTimerForRunTimeStats
-#define portGET_RUN_TIME_COUNTER_VALUE getRunTimeCounterValue    
+ extern unsigned long ulHighFreqTimerTicks;
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() (ulHighFreqTimerTicks = 0ul)
+#define portGET_RUN_TIME_COUNTER_VALUE() ulHighFreqTimerTicks
 /* USER CODE END 2 */
 
 /* USER CODE BEGIN Defines */   	      

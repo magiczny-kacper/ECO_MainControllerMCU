@@ -76,6 +76,7 @@ void FLASH_ChipDeselect (void);
 #define DAC_CS_GPIO_Port GPIOB
 #define PG24V_Pin GPIO_PIN_12
 #define PG24V_GPIO_Port GPIOB
+#define PG24V_EXTI_IRQn EXTI15_10_IRQn
 #define FLASH_CS_Pin GPIO_PIN_13
 #define FLASH_CS_GPIO_Port GPIOB
 #define NRF_CS_Pin GPIO_PIN_14
