@@ -11,7 +11,7 @@
 
 static const CLI_Command_Definition_t xEreaseEECmd = {
 	"erease_eeprom",
-	"\r\nerease_eeprom:\r\n Ereases EEPROM memory.\r\n",
+	"erease_eeprom:\r\n    Ereases EEPROM memory.\r\n",
 	xCLI_EreaseEE,
 	0
 };

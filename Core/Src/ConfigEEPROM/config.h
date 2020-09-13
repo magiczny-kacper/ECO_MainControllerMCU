@@ -10,24 +10,26 @@
 
 #include "stm32f4xx_hal.h"
 
-#define CONFIG_BYTES_LEN 56
+
 #define REG_CONFIG_BYTES_LEN 32
 #define ETH_CONFIG_BYTES_LEN 18
+#define CRC_BYTES_LEN 6
+#define CONFIG_BYTES_LEN (REG_CONFIG_BYTES_LEN + ETH_CONFIG_BYTES_LEN + CRC_BYTES_LEN)
 #define MAGIC_WORD 0xAA55
 
 typedef enum{
-	CONF_ERR_NOCONF,
-	CONF_ERR_CRC,
-	CONF_ERR_BUSY,
-	CONF_ERR_NULL,
-	CONF_ERR_TIMEOUT,
+	CONF_ERR_NOCONF = -5,
+	CONF_ERR_CRC = -4,
+	CONF_ERR_BUSY = -3,
+	CONF_ERR_NULL = -2,
+	CONF_ERR_TIMEOUT = -1,
 	CONF_OK = 0,
 } CONFStatus_t;
 
 typedef enum{
-	CONF_STAT_ERROR,
-	CONF_STAT_NOCONF,
-	CONF_STAT_INIT,
+	CONF_STAT_ERROR = -3,
+	CONF_STAT_NOCONF = -2,
+	CONF_STAT_INIT = -1,
 	CONF_STAT_LOADED = 0,
 } ConfigLoadStatus_t;
 
@@ -99,4 +101,7 @@ CONFStatus_t Config_GetConfig (ConfigStruct_t* config);
 CONFStatus_t Config_GetEthernetConfig (EthernetConfig_t* config);
 
 CONFStatus_t Config_GetRegConfig (RegulationConfig_t* config);
+
+CONFStatus_t Config_Copy (ConfigStruct_t* dest, ConfigStruct_t* src);
+
 #endif /* SRC_CONFIGEEPROM_CONFIG_H_ */

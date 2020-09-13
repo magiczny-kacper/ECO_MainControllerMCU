@@ -14,25 +14,59 @@ extern CRC_HandleTypeDef hcrc;
 static ConfigStruct_t configuration;
 static ConfigLoadStatus_t configuartionStatus;
 
+static const ConfigStruct_t defaultConfig = {
+		.EthernetConfig.ipAddress = {192,168,0,192},
+		.EthernetConfig.subnetMask = {255,255,255,0},
+		.EthernetConfig.gatewayAddress = {192,168,0,1},
+		.EthernetConfig.macAddress = {0x00, 0x08, 0xdc, 0xab, 0xcd, 0xef},
+		.RegulationConfig.CWU_heater_power = 0.0f,
+		.RegulationConfig.CO_heater_power = 0.0f,
+		.RegulationConfig.net_max_power = 0.0f,
+		.RegulationConfig.counter_address = 1,
+		.RegulationConfig.temperature_address = 2,
+		.RegulationConfig.acumulated_power_coeff = 0,
+		.RegulationConfig.heater_power_coeff = 0,
+		.RegulationConfig.CO_hi_temp = 0,
+		.RegulationConfig.CO_lo_temp = 0,
+		.RegulationConfig.CWU_hi_temp = 0,
+		.RegulationConfig.CWU_lo_temp = 0,
+		.RegulationConfig.exported_power = 0.0f,
+		.RegulationConfig.imported_power = 0.0f,
+		.RegulationConfig.acumulated_power = 0.0f,
+		.dummy = MAGIC_WORD
+};
+
 static uint32_t Config_CalculateCRC (void);
 
 static CONFStatus_t Config_CheckData (void);
 
 CONFStatus_t Config_Init(I2C_HandleTypeDef* iic){
-	CONFStatus_t retval = 0;
+	uint32_t retval = 0;
 
 
 	configuartionStatus = CONF_STAT_INIT;
 
 	retval |= EE_Init(iic);
-	EE_Erease();
-	retval |= EE_Read(&configuration, 0, CONFIG_BYTES_LEN);
+	//EE_Erease();
+	retval = EE_Read(&configuration, 0, CONFIG_BYTES_LEN);
 
-	retval |= Config_CheckData();
+	if(retval == EE_OK){
+		retval = Config_CheckData();
+	}
 
-	if(retval == CONF_OK) configuartionStatus = CONF_STAT_LOADED;
-	else if(retval == CONF_ERR_NOCONF) configuartionStatus = CONF_STAT_NOCONF;
-	else configuartionStatus = CONF_STAT_ERROR;
+	if(retval == CONF_OK){
+		configuartionStatus = CONF_STAT_LOADED;
+	}else{
+		if((retval == CONF_ERR_NOCONF) || (retval == CONF_ERR_CRC)){
+			Config_Copy(&configuration, &defaultConfig);
+			configuration.crc = Config_CalculateCRC();
+			retval = Config_Save();
+			configuartionStatus = CONF_STAT_NOCONF;
+		}else{
+			configuartionStatus = CONF_STAT_ERROR;
+		}
+	}
+
 	return retval;
 }
 
@@ -121,6 +155,7 @@ static uint32_t Config_CalculateCRC (void){
 }
 
 static CONFStatus_t Config_CheckData (void){
+	CONFStatus_t retval;
 	uint32_t readCRC, actualCRC;
 
 	readCRC = configuration.crc;
@@ -128,12 +163,13 @@ static CONFStatus_t Config_CheckData (void){
 
 	if(readCRC != actualCRC){
 		if(configuration.dummy != MAGIC_WORD){
-			return CONF_ERR_NOCONF;
+			retval = CONF_ERR_NOCONF;
 		}
-		return CONF_ERR_CRC;
+		retval = CONF_ERR_CRC;
 	}else{
-		return CONF_OK;
+		retval = CONF_OK;
 	}
+	return retval;
 }
 
 CONFStatus_t Config_Save (void){
@@ -176,6 +212,11 @@ CONFStatus_t Config_GetRegConfig (RegulationConfig_t* config){
 	return CONF_ERR_NOCONF;
 }
 
+CONFStatus_t Config_Copy (ConfigStruct_t* dest, ConfigStruct_t* src){
+	if((dest == NULL) || (src == NULL)) return CONF_ERR_NULL;
+	memcpy(dest, src, CONFIG_BYTES_LEN);
+	return CONF_OK;
+}
 /*void ConfigSaveTmr(void const * argument)
 {
 	uint8_t* data_pointer;
