@@ -45,7 +45,7 @@ EE_StatusTypeDef EE_Write (void* data, uint32_t addr, uint32_t len){
 	EE_StatusTypeDef retval = EE_ERR_NULL;
 	HAL_StatusTypeDef i2cStatus;
 	uint8_t* dataBuf;
-	uint32_t datalen, i, pages, rest, bytelen;
+	uint32_t datalen, i, pages, rest, bytelen, addrCpy;
 	uint8_t eeBlock, eeAddr;
 
 	if(data == NULL || len <= 0 || len >= EE_SIZE) return retval;
@@ -55,10 +55,12 @@ EE_StatusTypeDef EE_Write (void* data, uint32_t addr, uint32_t len){
 
 	dataBuf = (uint8_t*)data;
 	datalen = len;
+	addrCpy = addr;
+
 	if(len <= EE_PAGE_SIZE){
 		i2cStatus= HAL_I2C_Mem_Write(ee_iic, EE_ADDR + eeBlock, eeAddr, 1, dataBuf, len, EE_BYTE_WRITE_TIME * (len + 2));
 		if(i2cStatus == HAL_OK){
-			vTaskDelay(EE_BYTE_WRITE_TIME * (len + 1));
+			vTaskDelay(EE_BYTE_WRITE_TIME * (len + 2));
 			retval = EE_OK;
 		}
 		else if(i2cStatus == HAL_ERROR) retval = EE_ERR_TIMEOUT;
@@ -73,10 +75,13 @@ EE_StatusTypeDef EE_Write (void* data, uint32_t addr, uint32_t len){
 			}else{
 				bytelen = 16;
 			}
-			i2cStatus = HAL_I2C_Mem_Write(ee_iic, EE_ADDR, addr, 1, dataBuf, bytelen, EE_BYTE_WRITE_TIME * bytelen);
+			i2cStatus = HAL_I2C_Mem_Write(ee_iic, EE_ADDR, addrCpy, 1, dataBuf, bytelen, EE_BYTE_WRITE_TIME * (bytelen + 2));
 			if(i2cStatus == HAL_OK){
+				dataBuf += bytelen;
+				addrCpy += bytelen;
 				retval = EE_OK;
-				vTaskDelay(bytelen * EE_BYTE_WRITE_TIME);
+				while(HAL_I2C_IsDeviceReady(ee_iic, EE_ADDR, 10, 10) != HAL_OK);
+				//vTaskDelay((bytelen + 2) * EE_BYTE_WRITE_TIME);
 			}else{
 				if(i2cStatus == HAL_ERROR) retval = EE_ERR_TIMEOUT;
 				else if(i2cStatus == HAL_BUSY) retval = EE_ERR_BUSY;

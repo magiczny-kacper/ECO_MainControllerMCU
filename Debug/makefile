@@ -8,6 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include Middlewares/Third_Party/printf/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS_CLI/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
@@ -22,6 +23,7 @@ RM := rm -rf
 -include Core/Src/Tasks/DisplayTask/subdir.mk
 -include Core/Src/Tasks/DataLogTask/subdir.mk
 -include Core/Src/Tasks/subdir.mk
+-include Core/Src/RuntimeStats/subdir.mk
 -include Core/Src/RingBuffer/subdir.mk
 -include Core/Src/Modbus/subdir.mk
 -include Core/Src/Flash/subdir.mk
@@ -36,6 +38,12 @@ RM := rm -rf
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(strip $(S_DEPS)),)
+-include $(S_DEPS)
+endif
+ifneq ($(strip $(S_UPPER_DEPS)),)
+-include $(S_UPPER_DEPS)
+endif
 ifneq ($(strip $(C_DEPS)),)
 -include $(C_DEPS)
 endif
@@ -61,8 +69,8 @@ Suncontroller\ CPU.bin \
 all: Suncontroller\ CPU.elf secondary-outputs
 
 # Tool invocations
-Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) D:\Projekty\Suncontroller\Suncontroller\ software\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld
-	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\Projekty\Suncontroller\Suncontroller software\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) /media/magiczny_kacper/Data/Projekty/Suncontroller/Suncontroller\ software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld
+	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/media/magiczny_kacper/Data/Projekty/Suncontroller/Suncontroller software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

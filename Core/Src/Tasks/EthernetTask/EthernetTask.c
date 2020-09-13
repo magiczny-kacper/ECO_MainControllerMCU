@@ -16,7 +16,7 @@
 
 #include "wizchip_conf.h"
 #include "socket.h"
-#include "../../Ethernet/W5500/W5500.h"
+#include "W5500/w5500.h"
 
 extern osMutexId SPIMutexHandle;
 extern SPI_HandleTypeDef hspi1;
@@ -26,10 +26,6 @@ static const uint8_t gretMsg[] = 	"ECO_MainMCU Telnet.\r\nSoftware version: 0.0.
 static void cs_sel();
 
 static void cs_desel();
-
-static uint8_t spi_rb(void);
-
-static void spi_wb(uint8_t b);
 
 static void cs_sel() {
 	xSemaphoreTake(SPIMutexHandle, portMAX_DELAY);
@@ -60,13 +56,18 @@ static void W5500_WriteByte(uint8_t byte) {
 }
 
 uint16_t freesize;
+uint8_t rcvBuf[128], txBuf[128], bufSize[] = {2, 2, 2, 2, 2};
 
 void EthernetTask(void const * argument)
 {
   /* USER CODE BEGIN EthernetTask */
-	uint8_t rcvBuf[128], txBuf[128], bufSize[] = {2, 2, 2, 2, 2};
-
 	BaseType_t xMoreDataToFollow;
+	intr_kind interruptSource;
+	uint8_t interrupt;
+	uint8_t first_frame = 1;
+	uint8_t remoteIP[4][4];
+	uint16_t remotePort[4];
+	int32_t rcvSize = 0;
 
 	CLI_Init();
 
@@ -103,19 +104,11 @@ void EthernetTask(void const * argument)
 	// Telnet Port (CLI, debug)
 	if(socket(3, Sn_MR_TCP, 23, SF_TCP_NODELAY) == 3){
 		if(listen(3) == SOCK_OK) {
-			setSn_IMR(3, Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT);
+			setSn_IMR(3, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
 		}
 	}
 
-	intr_kind interruptSource;
-	uint8_t interrupt;
-	//uint8_t recv_buffer[256];
-
-	uint8_t remoteIP[4][4];
-	uint16_t remotePort[4];
   /* Infinite loop */
-	int32_t rcvSize = 0;
-	uint8_t first_frame = 1;
 	for(;;)
 	{
 		if(pdTRUE == xTaskNotifyWait(0xFFFFFFFF, 0xFFFFFFFF, NULL, portMAX_DELAY)){
@@ -162,6 +155,7 @@ void EthernetTask(void const * argument)
 				if(interruptSource & IK_SOCK_3){
 					freesize = getSn_TxMAX(3);
 					interrupt = getSn_IR(3);
+					setSn_IR(3, interrupt);
 					if(interrupt & Sn_IR_CON){
 						getsockopt(3, SO_DESTIP, &remoteIP[3]);
 						getsockopt(3, SO_DESTPORT, (uint8_t*)&remotePort[3]);
@@ -172,39 +166,36 @@ void EthernetTask(void const * argument)
 					if(interrupt & Sn_IR_RECV){
 						if(first_frame == 0){
 							rcvSize += recv(3, &rcvBuf[rcvSize], 128);
-							if(rcvBuf[rcvSize - 1] == '\r'){
+							while(((rcvBuf[rcvSize - 1] == '\r') || (rcvBuf[rcvSize - 1] == '\n')) && (rcvSize > 0)){
 								rcvBuf[rcvSize - 1] = 0;
-								rcvSize --;
-							}else if(rcvBuf[rcvSize - 2] == '\r'){
-								if(rcvBuf[rcvSize - 1] == '\n'){
-									rcvBuf[rcvSize - 1] = 0;
-									rcvBuf[rcvSize - 2] = '\n';
-									rcvSize -= 1;
-								}
+								rcvSize--;
 							}
-							if(rcvBuf[rcvSize - 1] == '\n'){
-								do{
-									xMoreDataToFollow = FreeRTOS_CLIProcessCommand(rcvBuf, txBuf, 128);
-									freesize = send(3, txBuf, strlen(txBuf));
-								}while(xMoreDataToFollow != pdFALSE);
-								rcvSize = 0;
-							}
+
+							do{
+								xMoreDataToFollow = FreeRTOS_CLIProcessCommand(&rcvBuf, &txBuf, 128);
+								freesize = send(3, txBuf, strlen((char*)txBuf));
+								vTaskDelay(1);
+							}while(xMoreDataToFollow != pdFALSE);
+							rcvSize = 0;
 						}else{
 							recv(3, rcvBuf, 128);
 							first_frame = 0;
 						}
 					}
 
-					/*if(interrupt & Sn_IR_SENDOK){
+					if(interrupt & Sn_IR_SENDOK){
 						ClrSiS(3);
-					}*/
-
-					if(interrupt & Sn_IR_DISCON ||
-						interrupt & Sn_IR_TIMEOUT){
-						disconnect(3);
-
 					}
-					setSn_IR(3, interrupt);
+
+					if(interrupt & Sn_IR_DISCON || interrupt & Sn_IR_TIMEOUT){
+						disconnect(3);
+						if(socket(3, Sn_MR_TCP, 23, SF_TCP_NODELAY) == 3){
+							if(listen(3) == SOCK_OK) {
+								setSn_IMR(3, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
+							}
+						}
+					}
+
 				}
 
 				if(interruptSource & IK_SOCK_4){
@@ -222,8 +213,6 @@ void EthernetTask(void const * argument)
 				if(interruptSource & IK_SOCK_7){
 					interrupt = getSn_IR(7);
 				}
-
-				wizchip_clrinterrupt(interruptSource);
 			}
 		}
 	}

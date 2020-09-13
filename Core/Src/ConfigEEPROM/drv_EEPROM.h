@@ -19,9 +19,9 @@
 #define EE_SIZE				1024
 
 typedef enum{
-	EE_ERR_BUSY,
-	EE_ERR_NULL,
-	EE_ERR_TIMEOUT,
+	EE_ERR_BUSY = -3,
+	EE_ERR_NULL = -2,
+	EE_ERR_TIMEOUT = -1,
 	EE_OK = 0,
 
 } EE_StatusTypeDef;
