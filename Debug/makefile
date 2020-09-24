@@ -69,8 +69,8 @@ Suncontroller\ CPU.bin \
 all: Suncontroller\ CPU.elf secondary-outputs
 
 # Tool invocations
-Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) /media/magiczny_kacper/Data/Projekty/Suncontroller/Suncontroller\ software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld
-	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/media/magiczny_kacper/Data/Projekty/Suncontroller/Suncontroller software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) /mnt/Data/Projekty/Suncontroller/Suncontroller\ software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld
+	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/mnt/Data/Projekty/Suncontroller/Suncontroller software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
