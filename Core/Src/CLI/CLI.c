@@ -44,7 +44,7 @@ static const CLI_Command_Definition_t xGetRtosStatsCmd = {
 static const CLI_Command_Definition_t xGetCommStatsCmd = {
 	"get_comm_stats",
 	"get_comm_stats:\r\n    Shows communication statistics.\r\n",
-	xCLI_EreaseEE,
+	xCLI_GetCommStats,
 	0
 };
 
@@ -178,7 +178,7 @@ BaseType_t xCLI_GetSystemStatus( char *pcWriteBuffer, size_t xWriteBufferLen, co
 
 	RTC_DateTypeDef date;
 	RTC_TimeTypeDef time;
-
+	return pdFALSE;
 }
 
 BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
@@ -202,13 +202,13 @@ BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const
 
 		case 1:
 			RuntimeStats_TelnetGetLastIP(ipArr);
-			printf(pcWriteBuffer, "    Last IP connected: %d.%d.%d.%d\r\n",
+			sprintf(pcWriteBuffer, "    Last IP connected: %d.%d.%d.%d\r\n",
 					ipArr[0], ipArr[1], ipArr[2], ipArr[3]);
 			step++;
 			break;
 
 		case 2:
-			sprintf(pcWriteBuffer, "    TX count: %d\r\n RX count: %d\r\n",
+			sprintf(pcWriteBuffer, "    TX count: %d\r\n    RX count: %d\r\n",
 					RuntimeStats_TelnetGetTxCnt(), RuntimeStats_TelnetGetRxCnt());
 			step++;
 			break;
