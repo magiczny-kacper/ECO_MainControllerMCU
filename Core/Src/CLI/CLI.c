@@ -42,8 +42,8 @@ static const CLI_Command_Definition_t xGetRtosStatsCmd = {
 };
 
 static const CLI_Command_Definition_t xGetCommStatsCmd = {
-	"erease_eeprom",
-	"erease_eeprom:\r\n    Ereases EEPROM memory.\r\n",
+	"get_comm_stats",
+	"get_comm_stats:\r\n    Shows communication statistics.\r\n",
 	xCLI_EreaseEE,
 	0
 };
@@ -179,4 +179,45 @@ BaseType_t xCLI_GetSystemStatus( char *pcWriteBuffer, size_t xWriteBufferLen, co
 	RTC_DateTypeDef date;
 	RTC_TimeTypeDef time;
 
+}
+
+BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+	(void) pcCommandString;
+	(void) xWriteBufferLen;
+
+	BaseType_t retVal = pdTRUE;
+	static uint8_t step = 0;
+
+	uint8_t ipArr[4];
+
+	switch(step){
+
+		case 0:
+			RuntimeStats_TelnetGetCurIP(ipArr);
+			sprintf(pcWriteBuffer, "Telnet statistics:\r\n"
+					"    Current IP connected: %d.%d.%d.%d\r\n",
+					ipArr[0], ipArr[1], ipArr[2], ipArr[3]);
+			step++;
+ 			break;
+
+		case 1:
+			RuntimeStats_TelnetGetLastIP(ipArr);
+			printf(pcWriteBuffer, "    Last IP connected: %d.%d.%d.%d\r\n",
+					ipArr[0], ipArr[1], ipArr[2], ipArr[3]);
+			step++;
+			break;
+
+		case 2:
+			sprintf(pcWriteBuffer, "    TX count: %d\r\n RX count: %d\r\n",
+					RuntimeStats_TelnetGetTxCnt(), RuntimeStats_TelnetGetRxCnt());
+			step++;
+			break;
+
+		default:
+			step = 0;
+			sprintf(pcWriteBuffer, "\r\n");
+			retVal = pdFALSE;
+			break;
+	}
+	return retVal;
 }

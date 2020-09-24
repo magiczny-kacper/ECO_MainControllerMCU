@@ -160,6 +160,7 @@ void EthernetTask(void const * argument)
 					if(interrupt & Sn_IR_CON){
 						getsockopt(3, SO_DESTIP, &remoteIP[3]);
 						getsockopt(3, SO_DESTPORT, (uint8_t*)&remotePort[3]);
+						RuntimeStats_TelnetCurrIPSet(&remoteIP[3][0]);
 						RuntimeStats_TelnetTxInc();
 						freesize = send(3, (uint8_t*)gretMsg, 47);
 						first_frame = 1;
@@ -192,6 +193,7 @@ void EthernetTask(void const * argument)
 					}
 
 					if(interrupt & Sn_IR_DISCON || interrupt & Sn_IR_TIMEOUT){
+						RuntimeStats_TelnetLastIPSet();
 						disconnect(3);
 						if(socket(3, Sn_MR_TCP, 23, SF_TCP_NODELAY) == 3){
 							if(listen(3) == SOCK_OK) {
