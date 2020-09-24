@@ -1035,10 +1035,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin & NRF_INT_Pin){
-		/*
-		 * TODO: ADD NRF INT Callback
-		 */
-		//vTaskNotifyGiveFromISR(NRFHandle, NULL);
+		vTaskNotifyGiveFromISR(nRF24L01Handle, NULL);
 	}
 
 	if(GPIO_Pin & ETH_INT_Pin){

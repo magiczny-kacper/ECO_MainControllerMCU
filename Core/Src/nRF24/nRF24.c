@@ -766,7 +766,7 @@ void nRF24_Init(SPI_HandleTypeDef *hspi)
 	nRF24_WriteRegister(NRF24_DYNPD, 0); // Disable dynamic payloads for all pipes
 	nRF24_SetPayloadSize(0, NRF24_PAYLOAD_SIZE); // Set 32 bytes payload for pipe 0
 #endif
-	nRF24_SetRFChannel(100); // Set RF channel for transmission
+	nRF24_SetRFChannel(110); // Set RF channel for transmission
 	nRF24_EnablePipe(0, 1); // Enable pipe 0
 	nRF24_EnablePipe(1, 1); // Enable pipe 1
 	nRF24_AutoACK(0, 1); // Enable auto ACK for pipe 0

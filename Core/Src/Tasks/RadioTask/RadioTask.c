@@ -36,11 +36,11 @@ void RadioTask(void const * argument)
 	const uint8_t ecoIOinitMSG[] = "IsAlive";
   /* USER CODE BEGIN RadioComm */
 	nRF24_Init(&hspi1);
-	//nRF24_SetRXAddress(0, "_ECOE");
-	//nRF24_SetRXAddress(1, "_ECOI");
-	//nRF24_SetTXAddress("_ECOM");
-	//nRF24_TX_Mode();
-	nRF24_SendData((uint8_t*)ecoIOinitMSG, sizeof(ecoIOinitMSG));
+	nRF24_SetRXAddress(0, "_ECOE");
+	nRF24_SetRXAddress(1, "_ECOI");
+	nRF24_SetTXAddress("_ECOM");
+	nRF24_RX_Mode();
+	//nRF24_SendData((uint8_t*)ecoIOinitMSG, sizeof(ecoIOinitMSG));
 
   /* Infinite loop */
   for(;;)

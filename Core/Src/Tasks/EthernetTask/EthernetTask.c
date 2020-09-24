@@ -13,6 +13,7 @@
 #include "main.h"
 
 #include "../../CLI/CLI.h"
+#include "../../RuntimeStats/RuntimeStats.h"
 
 #include "wizchip_conf.h"
 #include "socket.h"
@@ -159,12 +160,14 @@ void EthernetTask(void const * argument)
 					if(interrupt & Sn_IR_CON){
 						getsockopt(3, SO_DESTIP, &remoteIP[3]);
 						getsockopt(3, SO_DESTPORT, (uint8_t*)&remotePort[3]);
+						RuntimeStats_TelnetTxInc();
 						freesize = send(3, (uint8_t*)gretMsg, 47);
 						first_frame = 1;
 					}
 
 					if(interrupt & Sn_IR_RECV){
 						if(first_frame == 0){
+							RuntimeStats_TelnetRxInc();
 							rcvSize += recv(3, &rcvBuf[rcvSize], 128);
 							while(((rcvBuf[rcvSize - 1] == '\r') || (rcvBuf[rcvSize - 1] == '\n')) && (rcvSize > 0)){
 								rcvBuf[rcvSize - 1] = 0;
@@ -173,6 +176,7 @@ void EthernetTask(void const * argument)
 
 							do{
 								xMoreDataToFollow = FreeRTOS_CLIProcessCommand(&rcvBuf, &txBuf, 128);
+								RuntimeStats_TelnetTxInc();
 								freesize = send(3, txBuf, strlen((char*)txBuf));
 								vTaskDelay(1);
 							}while(xMoreDataToFollow != pdFALSE);
