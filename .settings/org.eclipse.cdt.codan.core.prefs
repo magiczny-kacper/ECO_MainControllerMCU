@@ -1,3 +1,36 @@
+Skip to content
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@magiczny-kacper 
+magiczny-kacper
+/
+ECO_MainControllerMCU
+Private
+0
+00
+Code
+Issues
+5
+Pull requests
+Actions
+Projects
+Security
+Insights
+Settings
+ECO_MainControllerMCU/.settings/org.eclipse.cdt.codan.core.prefs
+@magiczny-kacper
+magiczny-kacper Initial code
+…
+Latest commit 9feed37 on 21 Jul
+ History
+ 1 contributor
+56 lines (56 sloc)  14.5 KB
+ 
 com.st.stm32cube.ide.mcu.ide.oss.source.checker.libnano.problem.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},suppression_comment\=>"@suppress(\\"Float formatting support\\")"}
 eclipse.preferences.version=1
 org.eclipse.cdt.codan.checkers.errnoreturn.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},suppression_comment\=>"@suppress(\\"No return\\")",implicit\=>false}
@@ -54,3 +87,16 @@ org.eclipse.cdt.codan.internal.checkers.UsingInHeaderProblem.params={launchModes
 org.eclipse.cdt.codan.internal.checkers.VariableResolutionProblem.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},suppression_comment\=>"@suppress(\\"Symbol is not resolved\\")"}
 org.eclipse.cdt.codan.internal.checkers.VirtualMethodCallProblem=-Error
 org.eclipse.cdt.codan.internal.checkers.VirtualMethodCallProblem.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},suppression_comment\=>"@suppress(\\"Virtual method call in constructor/destructor\\")"}
+© 2020 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+

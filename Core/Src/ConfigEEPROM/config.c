@@ -43,7 +43,6 @@ static CONFStatus_t Config_CheckData (void);
 CONFStatus_t Config_Init(I2C_HandleTypeDef* iic){
 	uint32_t retval = 0;
 
-
 	configuartionStatus = CONF_STAT_INIT;
 
 	retval |= EE_Init(iic);
@@ -61,7 +60,7 @@ CONFStatus_t Config_Init(I2C_HandleTypeDef* iic){
 			Config_Copy(&configuration, &defaultConfig);
 			configuration.crc = Config_CalculateCRC();
 			retval = Config_Save();
-			configuartionStatus = CONF_STAT_NOCONF;
+			configuartionStatus = CONF_STAT_LOADED;
 		}else{
 			configuartionStatus = CONF_STAT_ERROR;
 		}

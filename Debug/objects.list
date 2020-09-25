@@ -16,7 +16,6 @@
 "Core/Src/Tasks/EthernetTask/EthernetTask.o"
 "Core/Src/Tasks/RadioTask/RadioTask.o"
 "Core/Src/Tasks/RegulationTask/RegulationTask.o"
-"Core/Src/Tasks/myTasks.o"
 "Core/Src/UART_DMA.o"
 "Core/Src/freertos.o"
 "Core/Src/main.o"

@@ -13,6 +13,7 @@
 #include "../ConfigEEPROM/drv_EEPROM.h"
 #include "../RuntimeStats/RuntimeStats.h"
 
+#include "FreeRTOS.h"
 
 static const CLI_Command_Definition_t xEreaseEECmd = {
 	"erease_eeprom",
@@ -36,9 +37,9 @@ static const CLI_Command_Definition_t xGetSysStatusCmd = {
 };
 
 static const CLI_Command_Definition_t xGetRtosStatsCmd = {
-	"erease_eeprom",
-	"erease_eeprom:\r\n    Ereases EEPROM memory.\r\n",
-	xCLI_EreaseEE,
+	"get_rtos_stats",
+	"get_rtos_stats:\r\n    Shows RTOS runtime statistics.\r\n",
+	xCLI_GetRtosStats,
 	0
 };
 
@@ -179,6 +180,13 @@ BaseType_t xCLI_GetSystemStatus( char *pcWriteBuffer, size_t xWriteBufferLen, co
 
 	RTC_DateTypeDef date;
 	RTC_TimeTypeDef time;
+	return pdFALSE;
+}
+
+BaseType_t xCLI_GetRtosStats( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+	(void) pcCommandString;
+	(void) xWriteBufferLen;
+	vTaskGetRunTimeStats(pcWriteBuffer);
 	return pdFALSE;
 }
 
