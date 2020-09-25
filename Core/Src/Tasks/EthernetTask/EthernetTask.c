@@ -101,11 +101,12 @@ void EthernetTask(void const * argument)
 	wizchip_getnetinfo(&netInfo);
 
 	// Modbus Port
-	//if(socket(0, Sn_MR_TCP, 502, 0) == 0) {
+	if(socket(0, Sn_MR_TCP, 502, 0) == 0) {
 		  	  /* Put socket in LISTEN mode. This means we are creating a TCP server */
-		//if(listen(0) == SOCK_OK) {
-		//}
-	//}
+		if(listen(0) == SOCK_OK) {
+
+		}
+	}
 
 	// HTTP Port (WebServer)
 	/*if(socket(1, Sn_MR_TCP, 80, 0) == 0){
