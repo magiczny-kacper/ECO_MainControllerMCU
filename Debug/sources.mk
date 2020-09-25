@@ -34,7 +34,6 @@ Core/Src/Tasks/DisplayTask \
 Core/Src/Tasks/EthernetTask \
 Core/Src/Tasks/RadioTask \
 Core/Src/Tasks/RegulationTask \
-Core/Src/Tasks \
 Core/Src \
 Core/Src/nRF24 \
 Core/Startup \

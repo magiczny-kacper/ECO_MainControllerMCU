@@ -22,7 +22,6 @@ RM := rm -rf
 -include Core/Src/Tasks/EthernetTask/subdir.mk
 -include Core/Src/Tasks/DisplayTask/subdir.mk
 -include Core/Src/Tasks/DataLogTask/subdir.mk
--include Core/Src/Tasks/subdir.mk
 -include Core/Src/RuntimeStats/subdir.mk
 -include Core/Src/RingBuffer/subdir.mk
 -include Core/Src/Modbus/subdir.mk

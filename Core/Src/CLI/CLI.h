@@ -16,5 +16,6 @@ void CLI_Init (void);
 BaseType_t xCLI_EreaseEE( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString );
 BaseType_t xCLI_ShowConfig( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString );
 BaseType_t xCLI_GetSystemStatus( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString );
+BaseType_t xCLI_GetRtosStats( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString );
 BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString );
 #endif /* SRC_CLI_CLI_H_ */
