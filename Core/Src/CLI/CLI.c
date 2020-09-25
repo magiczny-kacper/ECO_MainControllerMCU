@@ -8,9 +8,10 @@
 
 #include "CLI.h"
 #include "printf.h"
+
 #include "../ConfigEEPROM/config.h"
 #include "../ConfigEEPROM/drv_EEPROM.h"
-
+#include "../RuntimeStats/RuntimeStats.h"
 
 
 static const CLI_Command_Definition_t xEreaseEECmd = {
@@ -210,6 +211,17 @@ BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const
 		case 2:
 			sprintf(pcWriteBuffer, "    TX count: %d\r\n    RX count: %d\r\n",
 					RuntimeStats_TelnetGetTxCnt(), RuntimeStats_TelnetGetRxCnt());
+			step++;
+			break;
+
+		case 3:
+			sprintf(pcWriteBuffer, "Modbus statistics:\r\n"
+					"    Requests send: %d\r\n"
+					"    Responses received: %d\r\n"
+					"    Requests not responded: %d\r\n"
+					"    Wrong responds: %d\r\n",
+					RuntimeStats_ModbusMasterRqSendGet(), RuntimeStats_ModbusMasterRespOkGet(),
+					RuntimeStats_ModbusMasterNoRespGet(), RuntimeStats_ModbusMasterWrongRespGet());
 			step++;
 			break;
 

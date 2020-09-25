@@ -1,4 +1,5 @@
 #include "Modbus.h"
+#include "../RuntimeStats/RuntimeStats.h"
 
 void vModbusInit (ModbusHandler *modbus, UART_HandleTypeDef *port, TickType_t timeout){
 	modbus -> ModbusSerialPort = port;
@@ -65,6 +66,7 @@ ModbusState vReadCoilStatus (ModbusHandler *modbus, uint8_t slave_address, uint1
 	//Wy�lij dane;
 	HAL_GPIO_WritePin(MASTER_TE_GPIO_Port, MASTER_TE_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(BUILT_IN_LED_GPIO_Port, BUILT_IN_LED_Pin, GPIO_PIN_RESET);
+	RuntimeStats_ModbusMasterRqSendInc();
 	HAL_UART_Transmit_DMA(modbus -> ModbusSerialPort, transmit_frame_buffer, 8);
 	//W��cz odbieranie
 	HAL_UART_Receive_DMA(modbus -> ModbusSerialPort, received_frame_buffer, received_frame_length);
@@ -78,16 +80,20 @@ ModbusState vReadCoilStatus (ModbusHandler *modbus, uint8_t slave_address, uint1
 					*response_frame = received_frame_buffer[i + 3];
 					response_frame++;
 				}
-
+				RuntimeStats_ModbusMasterRespOkInc();
 				return Modbus_OK;
 			}
+			RuntimeStats_ModbusMasterWrongRespInc();
 			return Modbus_CRCERR;
 		}
+		RuntimeStats_ModbusMasterWrongRespInc();
 		return Modbus_CRCERR;
 	}else{
 		HAL_UART_AbortReceive_IT(modbus -> ModbusSerialPort);
+		RuntimeStats_ModbusMasterNoRespInc();
 		return Modbus_TIMEOUT;
 	}
+	RuntimeStats_ModbusMasterWrongRespInc();
 	return Modbus_CRCERR;
 }
 
@@ -112,6 +118,7 @@ ModbusState vReadInputStatus (ModbusHandler *modbus, uint8_t slave_address, uint
 	//Wy�lij dane;
 	HAL_GPIO_WritePin(MASTER_TE_GPIO_Port, MASTER_TE_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(BUILT_IN_LED_GPIO_Port, BUILT_IN_LED_Pin, GPIO_PIN_RESET);
+	RuntimeStats_ModbusMasterRqSendInc();
 	HAL_UART_Transmit_DMA(modbus -> ModbusSerialPort, transmit_frame_buffer, 8);
 	//W��cz odbieranie
 	HAL_UART_Receive_DMA(modbus -> ModbusSerialPort, received_frame_buffer, received_frame_length);
@@ -124,16 +131,20 @@ ModbusState vReadInputStatus (ModbusHandler *modbus, uint8_t slave_address, uint
 					*response_frame = received_frame_buffer[i + 3];
 					response_frame++;
 				}
-
+				RuntimeStats_ModbusMasterRespOkInc();
 				return Modbus_OK;
 			}
+			RuntimeStats_ModbusMasterWrongRespInc();
 			return Modbus_CRCERR;
 		}
+		RuntimeStats_ModbusMasterWrongRespInc();
 		return Modbus_CRCERR;
 	}else{
 		HAL_UART_AbortReceive_IT(modbus -> ModbusSerialPort);
+		RuntimeStats_ModbusMasterNoRespInc();
 		return Modbus_TIMEOUT;
 	}
+	RuntimeStats_ModbusMasterWrongRespInc();
 	return Modbus_CRCERR;
 }
 
@@ -159,6 +170,7 @@ ModbusState vModbusReadHoldingRegisters (ModbusHandler *modbus, uint8_t slave_ad
 	//Wy�lij dane;
 	HAL_GPIO_WritePin(MASTER_TE_GPIO_Port, MASTER_TE_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(BUILT_IN_LED_GPIO_Port, BUILT_IN_LED_Pin, GPIO_PIN_RESET);
+	RuntimeStats_ModbusMasterRqSendInc();
 	HAL_UART_Transmit_DMA(modbus -> ModbusSerialPort, transmit_frame_buffer, 8);
 	//W��cz odbieranie
 	HAL_UART_Receive_DMA(modbus -> ModbusSerialPort, received_frame_buffer, received_frame_length);
@@ -171,16 +183,20 @@ ModbusState vModbusReadHoldingRegisters (ModbusHandler *modbus, uint8_t slave_ad
 					*response_frame = received_frame_buffer[i + 3];
 					response_frame++;
 				}
-
+				RuntimeStats_ModbusMasterRespOkInc();
 				return Modbus_OK;
 			}
+			RuntimeStats_ModbusMasterWrongRespInc();
 			return Modbus_CRCERR;
 		}
+		RuntimeStats_ModbusMasterWrongRespInc();
 		return Modbus_CRCERR;
 	}else{
 		HAL_UART_AbortReceive_IT(modbus -> ModbusSerialPort);
+		RuntimeStats_ModbusMasterNoRespInc();
 		return Modbus_TIMEOUT;
 	}
+	RuntimeStats_ModbusMasterWrongRespInc();
 	return Modbus_CRCERR;
 }
 
@@ -207,6 +223,7 @@ ModbusState vModbusReadInputRegisters (ModbusHandler *modbus, uint8_t slave_addr
 	//Wy�lij dane;
 	HAL_GPIO_WritePin(MASTER_TE_GPIO_Port, MASTER_TE_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(BUILT_IN_LED_GPIO_Port, BUILT_IN_LED_Pin, GPIO_PIN_RESET);
+	RuntimeStats_ModbusMasterRqSendInc();
 	HAL_UART_Transmit_IT(modbus -> ModbusSerialPort, transmit_frame_buffer, 8);
 	ulNotificationValue = ulTaskNotifyTake( pdTRUE, modbus->timeout_t );
 	HAL_UART_Receive_DMA(modbus -> ModbusSerialPort, received_frame_buffer, received_frame_length);
@@ -221,28 +238,20 @@ ModbusState vModbusReadInputRegisters (ModbusHandler *modbus, uint8_t slave_addr
 					*response_frame = received_frame_buffer[i + 3];
 					response_frame++;
 				}
-
+				RuntimeStats_ModbusMasterRespOkInc();
 				return Modbus_OK;
 			}
-#ifdef __DEBUG
-			printf("%d Modbus: no data from slave: %d\n", HAL_GetTick(), slave_address);
-#endif
+			RuntimeStats_ModbusMasterWrongRespInc();
 			return Modbus_CRCERR;
 		}
-#ifdef __DEBUG
-		printf("%d Modbus: no data from slave: %d\n", HAL_GetTick(), slave_address);
-#endif
+		RuntimeStats_ModbusMasterWrongRespInc();
 		return Modbus_CRCERR;
 	}else{
 		HAL_UART_AbortReceive_IT(modbus -> ModbusSerialPort);
-#ifdef __DEBUG
-		printf("%d Modbus: no data from slave: %d\n", HAL_GetTick(), slave_address);
-#endif
+		RuntimeStats_ModbusMasterNoRespInc();
 		return Modbus_TIMEOUT;
 	}
-#ifdef __DEBUG
-	printf("%d Modbus: no data from slave: %d\n", HAL_GetTick(), slave_address);
-#endif
+	RuntimeStats_ModbusMasterWrongRespInc();
 	return Modbus_CRCERR;
 }
 
@@ -272,6 +281,7 @@ ModbusState vForceSingleCoil (ModbusHandler *modbus, uint8_t slave_address, uint
 	//Wy�lij dane;
 	HAL_GPIO_WritePin(MASTER_TE_GPIO_Port, MASTER_TE_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(BUILT_IN_LED_GPIO_Port, BUILT_IN_LED_Pin, GPIO_PIN_RESET);
+	RuntimeStats_ModbusMasterRqSendInc();
 	HAL_UART_Transmit_DMA(modbus -> ModbusSerialPort, transmit_frame_buffer, 8);
 	//W��cz odbieranie
 	HAL_UART_Receive_DMA(modbus -> ModbusSerialPort, received_frame_buffer, received_frame_length);
@@ -280,15 +290,22 @@ ModbusState vForceSingleCoil (ModbusHandler *modbus, uint8_t slave_address, uint
 	if(ulNotificationValue){
 		if(bModbusCheckCRC(received_frame_length, received_frame_buffer)){
 			for(int i = 0 ; i < 8; i++){
-				if(transmit_frame_buffer[i] != received_frame_buffer[i]) return Modbus_TIMEOUT;
+				if(transmit_frame_buffer[i] != received_frame_buffer[i]){
+					RuntimeStats_ModbusMasterNoRespInc();
+					return Modbus_TIMEOUT;
+				}
 			}
+			RuntimeStats_ModbusMasterRespOkInc();
 			return Modbus_OK;
 		}
+		RuntimeStats_ModbusMasterWrongRespInc();
 		return Modbus_CRCERR;
 	}else{
 		HAL_UART_AbortReceive_IT(modbus -> ModbusSerialPort);
+		RuntimeStats_ModbusMasterNoRespInc();
 		return Modbus_TIMEOUT;
 	}
+	RuntimeStats_ModbusMasterWrongRespInc();
 	return Modbus_CRCERR;
 }
 
