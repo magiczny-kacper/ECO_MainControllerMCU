@@ -22,7 +22,7 @@ extern UART_HandleTypeDef huart2;
 
 MCP23017_HandleTypeDef expander1;
 
-RegTaskData_t regulationData;
+static RegTaskData_t regulationData;
 
 #define HIGH 						1
 #define LOW							0
@@ -49,10 +49,12 @@ float fModbusParseFloat (uint8_t* in_data){
 	return buffor.value;
 }
 
+ModbusHandler mbPort;
+
 void RegulationTask(void const * argument)
 {
   /* USER CODE BEGIN PowerRegulation */
-	ModbusHandler mbPort;
+
 	TickType_t xLastWakeTime;
 
 	const TickType_t xDelay = 1000;
@@ -124,13 +126,13 @@ void RegulationTask(void const * argument)
 
 		receieves = 0;
 
-		if(regulationData.IOsignals.signals.input2 != regulationData.IOsignals.signals.output1){
+		if(regulationData.IOsignals.signals.input2 != regulationData.IOsignals.signals.output2){
 			regulationData.ControlWord.CWUHeaterError = HIGH;
 		}else{
 			regulationData.ControlWord.CWUHeaterError = LOW;
 		}
 
-		if(regulationData.IOsignals.signals.input3 != regulationData.IOsignals.signals.output2){
+		if(regulationData.IOsignals.signals.input3 != regulationData.IOsignals.signals.output3){
 			regulationData.ControlWord.COHeaterError = HIGH;
 		}else{
 			regulationData.ControlWord.COHeaterError = LOW;
@@ -269,6 +271,12 @@ void RegulationTask(void const * argument)
 
 		}
 
+		if((regulationData.ControlWord.COHeaterStateOut == 0) && (regulationData.ControlWord.CWUHeaterStateOut == 0)){
+			regulationData.IOsignals.signals.output1 = 1;
+		}else{
+			regulationData.IOsignals.signals.output1 = 0;
+		}
+
 		TIM3 -> CCR1 = regulationData.counter.CWU_heater_PWM[0];
 		TIM3 -> CCR2 = regulationData.counter.CWU_heater_PWM[1];
 		TIM3 -> CCR3 = regulationData.counter.CWU_heater_PWM[2];
@@ -279,11 +287,12 @@ void RegulationTask(void const * argument)
 
 		expander1.gpio[MCP23017_PORTA] = regulationData.IOsignals.ports.portA;
 		mcp23017_write_gpio(&expander1, 0);
-		vTaskDelayUntil(&xLastWakeTime, xDelay);
+		//vTaskDelayUntil(&xLastWakeTime, xDelay);
+		vTaskDelay(1000);
 	}
   /* USER CODE END PowerRegulation */
 }
 
-void RegulationTask_GetData (RegTaskData_t* destination){
-	memcpy(destination, &regulationData, sizeof(RegTaskData_t));
+RegTaskData_t* RegulationTask_GetData (void){
+	return &regulationData;
 }

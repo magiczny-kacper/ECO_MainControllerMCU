@@ -2,8 +2,10 @@
 #define MODBUS_H
 #endif
 
-#include "stdlib.h"
-#include "string.h"
+#include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "stm32f4xx_hal.h"
@@ -21,11 +23,11 @@ typedef enum{
 	Modbus_OK = 0,
 	Modbus_TIMEOUT,
 	Modbus_CRCERR
-}ModbusState;
+}ModbusState_t;
 
 void vModbusInit (ModbusHandler *modbus, UART_HandleTypeDef *port, uint32_t timeout);
 uint16_t uModbusCalculateCRC (uint8_t frame_length, uint8_t *frame);
 uint8_t bModbusCheckCRC (uint8_t frame_length, uint8_t *frame);
-ModbusState vModbusReadHoldingRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame);
-ModbusState vModbusReadInputRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame);
+ModbusState_t vModbusReadHoldingRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame);
+ModbusState_t vModbusReadInputRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame);
 void vModbusReceieveResponseCallback (ModbusHandler *modbus);

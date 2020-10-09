@@ -32,6 +32,8 @@
 #include "Tasks/EthernetTask/EthernetTask.h"
 #include "Tasks/RadioTask/RadioTask.h"
 #include "ConfigEEPROM/config.h"
+#include "Flash/dataLog.h"
+#include "Modbus/Modbus.h"
 
 /* USER CODE END Includes */
 
@@ -76,12 +78,13 @@ DMA_HandleTypeDef hdma_usart6_rx;
 osThreadId defaultTaskHandle;
 osThreadId PowerRegulationHandle;
 osThreadId DiplaysHandle;
-osThreadId TestHandle;
 osThreadId EthernetHandle;
 osThreadId nRF24L01Handle;
 osThreadId DataLogHandle;
+osMessageQId DataLogQueueHandle;
 osTimerId ConfigHandle;
 osMutexId SPIMutexHandle;
+osMutexId I2CMutexHandle;
 /* USER CODE BEGIN PV */
 unsigned long ulHighFreqTimerTicks;
 /* USER CODE END PV */
@@ -105,7 +108,6 @@ static void MX_TIM11_Init(void);
 void StartDefaultTask(void const * argument);
 void RegulationTask(void const * argument);
 void DisplayTask(void const * argument);
-void TestTask(void const * argument);
 void EthernetTask(void const * argument);
 void RadioTask(void const * argument);
 void DataLogTask(void const * argument);
@@ -121,8 +123,6 @@ void ModifyEEPROMStruct (uint32_t data, int32_t value);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() (ulHighFreqTimerTicks = 0ul)
-#define portGET_RUN_TIME_COUNTER_VALUE() ulHighFreqTimerTicks
 /* USER CODE END 0 */
 
 /**
@@ -167,8 +167,7 @@ int main(void)
   MX_CRC_Init();
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
-  Config_Init(&hi2c1);
-
+  HAL_TIM_Base_Start_IT(&htim11);
 
   /* USER CODE END 2 */
 
@@ -177,8 +176,13 @@ int main(void)
   osMutexDef(SPIMutex);
   SPIMutexHandle = osMutexCreate(osMutex(SPIMutex));
 
+  /* definition and creation of I2CMutex */
+  osMutexDef(I2CMutex);
+  I2CMutexHandle = osMutexCreate(osMutex(I2CMutex));
+
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
+  Config_Init(&hi2c1);
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
@@ -193,6 +197,11 @@ int main(void)
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* definition and creation of DataLogQueue */
+  osMessageQDef(DataLogQueue, 16, 16);
+  DataLogQueueHandle = osMessageCreate(osMessageQ(DataLogQueue), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -210,10 +219,6 @@ int main(void)
   /* definition and creation of Diplays */
   osThreadDef(Diplays, DisplayTask, osPriorityNormal, 0, 256);
   DiplaysHandle = osThreadCreate(osThread(Diplays), NULL);
-
-  /* definition and creation of Test */
-  osThreadDef(Test, TestTask, osPriorityLow, 0, 128);
-  TestHandle = osThreadCreate(osThread(Test), NULL);
 
   /* definition and creation of Ethernet */
   osThreadDef(Ethernet, EthernetTask, osPriorityHigh, 0, 256);
@@ -714,7 +719,7 @@ static void MX_TIM11_Init(void)
   htim11.Instance = TIM11;
   htim11.Init.Prescaler = 0;
   htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim11.Init.Period = 8400 - 1;
+  htim11.Init.Period = 840 - 1;
   htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
@@ -923,8 +928,6 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-
-
 /*void ModifyEEPROMStruct (uint32_t data, int32_t value){
 	switch (data){
 		case 0:
@@ -999,12 +1002,11 @@ static void MX_GPIO_Init(void)
 	}
 }*/
 
+extern ModbusHandler mbPort;
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	if(huart -> Instance == USART2){
-		/*
-		 * TODO: ADD Modbus RX Callback
-		 */
-		//vModbusReceieveResponseCallback(&mbPort);
+		vModbusReceieveResponseCallback(&mbPort);
 	}
 }
 
@@ -1013,7 +1015,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 		/*
 		 * TODO: ADD Modbus TX Callback
 		 */
-		//vTaskNotifyGiveFromISR((TaskHandle_t)mbPort.task, NULL);
+		vTaskNotifyGiveFromISR((TaskHandle_t)mbPort.task, NULL);
 		HAL_GPIO_WritePin(BUILT_IN_LED_GPIO_Port, BUILT_IN_LED_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(MASTER_TE_GPIO_Port, MASTER_TE_Pin, GPIO_PIN_RESET);
 	}
@@ -1057,7 +1059,7 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(10000000);
+    vTaskSuspend(NULL);
   }
   /* USER CODE END 5 */
 }
@@ -1096,24 +1098,6 @@ __weak void DisplayTask(void const * argument)
     osDelay(1);
   }
   /* USER CODE END DisplayTask */
-}
-
-/* USER CODE BEGIN Header_TestTask */
-/**
-* @brief Function implementing the Test thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_TestTask */
-__weak void TestTask(void const * argument)
-{
-  /* USER CODE BEGIN TestTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END TestTask */
 }
 
 /* USER CODE BEGIN Header_EthernetTask */

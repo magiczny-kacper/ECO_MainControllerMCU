@@ -15,6 +15,7 @@
 #include "../../CLI/CLI.h"
 #include "../../RuntimeStats/RuntimeStats.h"
 #include "../ConfigEEPROM/config.h"
+#include "../Flash/dataLog.h"
 
 #include "wizchip_conf.h"
 #include "socket.h"
@@ -94,6 +95,8 @@ void EthernetTask(void const * argument)
 	memcpy(&netInfo.ip, &ethConf.ipAddress, 4);
 	memcpy(&netInfo.mac, &ethConf.macAddress, 6);
 	memcpy(&netInfo.sn, &ethConf.subnetMask, 4);
+
+	wizchip_sw_reset();
 	wizchip_init(bufSize, bufSize);
 
 	wizchip_setnetinfo(&netInfo);
@@ -179,6 +182,7 @@ void EthernetTask(void const * argument)
 						getsockopt(3, SO_DESTPORT, (uint8_t*)&remotePort[3]);
 						RuntimeStats_TelnetCurrIPSet(&remoteIP[3][0]);
 						RuntimeStats_TelnetTxInc();
+						DataLog_LogEvent(EV_TELNET_CONN);
 						freesize = send(3, (uint8_t*)gretMsg, 47);
 						first_frame = 1;
 					}
@@ -206,11 +210,13 @@ void EthernetTask(void const * argument)
 					}
 
 					if(interrupt & Sn_IR_SENDOK){
+						memset(txBuf, 0, TX_BUF_SIZE);
 						ClrSiS(3);
 					}
 
 					if(interrupt & Sn_IR_DISCON || interrupt & Sn_IR_TIMEOUT){
 						RuntimeStats_TelnetLastIPSet();
+						DataLog_LogEvent(EV_TELNET_DISCON);
 						disconnect(3);
 						if(socket(3, Sn_MR_TCP, 23, SF_TCP_NODELAY) == 3){
 							if(listen(3) == SOCK_OK) {

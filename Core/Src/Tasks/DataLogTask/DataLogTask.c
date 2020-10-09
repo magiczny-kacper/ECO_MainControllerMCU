@@ -11,11 +11,12 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
-#include "../../Flash/w25qxx.h"
+#include "../Flash/dataLog.h"
 
 extern osMutexId SPIMutexHandle;
+extern osMessageQId DataLogQueueHandle;
 
-
+static DataLogEvent_t event;
 
 void FLASH_ChipSelect (void){
 	xSemaphoreTake(SPIMutexHandle, portMAX_DELAY);
@@ -30,11 +31,15 @@ void FLASH_ChipDeselect (void){
 void DataLogTask(void const * argument)
 {
   /* USER CODE BEGIN DataLog */
-	W25qxx_Init();
+	if(DataLog_Init() != DL_OK){
+		vTaskSuspend(NULL);
+	}
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	for(;;)
+	{
+		if(pdPASS == xQueueReceive(DataLogQueueHandle, &event, portMAX_DELAY)){
+			DataLog_SaveEvent(&event);
+		}
+	}
   /* USER CODE END DataLog */
 }

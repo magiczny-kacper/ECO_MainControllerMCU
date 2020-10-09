@@ -58,8 +58,6 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 void NRF_ChipSelect (void);
 void NRF_ChipDeselect (void);
-void FLASH_ChipSelect (void);
-void FLASH_ChipDeselect (void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

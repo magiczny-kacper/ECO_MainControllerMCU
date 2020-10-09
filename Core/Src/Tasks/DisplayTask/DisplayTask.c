@@ -124,7 +124,7 @@ UARTDMA_HandleTypeDef nextion_small_comm;
 nextion nextion_small;
 nextion nextion_big;
 
-RegTaskData_t RegulationTaskData;
+static RegTaskData_t RegulationTaskData;
 
 uint8_t command_correct[NEX_COMMANDS_COUNT];
 uint8_t current_command;
@@ -216,7 +216,7 @@ void DisplayTask(void const * argument)
 	nextion_small_comm.callback = NextionSmall_DataRcv;
 
 	Config_GetEthernetConfig(&configuration);
-	RegulationTask_GetData(&RegulationTaskData);
+	//RegulationTask_GetData(&RegulationTaskData);
 
 	vTaskDelay(1000);
 
@@ -245,7 +245,7 @@ void DisplayTask(void const * argument)
 
 	// Pętla nieskończona
 	for(;;){
-		RegulationTask_GetData(&RegulationTaskData);
+		//RegulationTask_GetData(&RegulationTaskData);
 		if(nextion_big.display != nextion_big.last_display){
 			if(nextion_big.display == 2){
 				nextion_UpdateTime(NEXTION_BIG_UART);

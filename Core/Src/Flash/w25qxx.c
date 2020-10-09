@@ -127,7 +127,7 @@ void W25qxx_WaitForWriteEnd(void)
   do
   {
     w25qxx.StatusRegister1 = W25qxx_Spi(W25QXX_DUMMY_BYTE);
-		W25qxx_Delay(1);
+		W25qxx_Delay(10);
   }
   while ((w25qxx.StatusRegister1 & 0x01) == 0x01);
  FLASH_DESELECT;

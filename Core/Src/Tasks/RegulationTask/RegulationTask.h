@@ -75,14 +75,14 @@ typedef union{
 		uint8_t output2 :1;
 		uint8_t output1 :1;
 
-		uint8_t input8 	:1;
-		uint8_t input7 	:1;
-		uint8_t input6 	:1;
-		uint8_t input5 	:1;
-		uint8_t input4 	:1;
-		uint8_t input3 	:1;
-		uint8_t input2 	:1;
 		uint8_t input1 	:1;
+		uint8_t input2 	:1;
+		uint8_t input3 	:1;
+		uint8_t input4 	:1;
+		uint8_t input5 	:1;
+		uint8_t input6 	:1;
+		uint8_t input7 	:1;
+		uint8_t input8 	:1;
 	}signals;
 
 	struct{
@@ -129,6 +129,6 @@ typedef struct{
 
 void RegulationTask(void const * argument);
 
-void RegulationTask_GetData (RegTaskData_t* destination);
+RegTaskData_t* RegulationTask_GetData (void);
 
 #endif /* SRC_TASKS_REGULATIONTASK_REGULATIONTASK_H_ */

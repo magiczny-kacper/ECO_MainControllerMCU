@@ -9,9 +9,11 @@
 
 #include "drv_EEPROM.h"
 #include "FreeRTOS.h"
+#include "cmsis_os.h"
 #include "task.h"
 #include "stm32f4xx_hal_i2c.h"
 
+extern osMutexId I2CMutexHandle;
 I2C_HandleTypeDef* ee_iic;
 
 EE_StatusTypeDef EE_Init (I2C_HandleTypeDef* hi2c){
@@ -29,7 +31,12 @@ EE_StatusTypeDef EE_Read (void* data, uint8_t addr, uint32_t len){
 	if(data == NULL || len <= 0 ) return EE_ERR_NULL;
 
 	dataBuf = (uint8_t*)data;
-	i2cStatus= HAL_I2C_Mem_Read(ee_iic, EE_ADDR, addr, 1, dataBuf, len, EE_BYTE_WRITE_TIME * (len + 2));
+	if(pdTRUE == xSemaphoreTake(I2CMutexHandle, 100)){
+		i2cStatus= HAL_I2C_Mem_Read(ee_iic, EE_ADDR, addr, 1, dataBuf, len, EE_BYTE_WRITE_TIME * (len + 2));
+		xSemaphoreGive(I2CMutexHandle);
+	}else{
+		return EE_ERR_TIMEOUT;
+	}
 	if(i2cStatus == HAL_OK){
 		return EE_OK;
 	}else if(i2cStatus == HAL_ERROR){
@@ -56,6 +63,10 @@ EE_StatusTypeDef EE_Write (void* data, uint32_t addr, uint32_t len){
 	dataBuf = (uint8_t*)data;
 	datalen = len;
 	addrCpy = addr;
+
+	if(pdFALSE == xSemaphoreTake(I2CMutexHandle, 100)){
+		return EE_ERR_TIMEOUT;
+	}
 
 	if(len <= EE_PAGE_SIZE){
 		i2cStatus= HAL_I2C_Mem_Write(ee_iic, EE_ADDR + eeBlock, eeAddr, 1, dataBuf, len, EE_BYTE_WRITE_TIME * (len + 2));
@@ -89,6 +100,7 @@ EE_StatusTypeDef EE_Write (void* data, uint32_t addr, uint32_t len){
 			}
 		}
 	}
+	xSemaphoreGive(I2CMutexHandle);
 	return retval;
 }
 

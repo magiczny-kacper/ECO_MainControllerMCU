@@ -1,11 +1,23 @@
 #include "Modbus.h"
 #include "../RuntimeStats/RuntimeStats.h"
 
+/**
+ * @brief Modbus master initialization
+ * @param modbus Pointer for modbus configuration structure
+ * @param port Pointer for HAL Uart structure
+ * @param timeout Request timeout
+ */
 void vModbusInit (ModbusHandler *modbus, UART_HandleTypeDef *port, TickType_t timeout){
 	modbus -> ModbusSerialPort = port;
 	modbus -> timeout_t = timeout / portTICK_PERIOD_MS;
 }
 
+/**
+ * @brief Calculates CRC of given frame
+ * @param frame_length Length of frame
+ * @param frame Pointer to frame to calculate CRC.
+ * @return Calculated CRC
+ */
 uint16_t uModbusCalculateCRC (uint8_t frame_length, uint8_t *frame){
 	uint16_t calculatedCRC = 0xFFFF;
 	uint16_t CRChigh, CRClow;
@@ -26,10 +38,15 @@ uint16_t uModbusCalculateCRC (uint8_t frame_length, uint8_t *frame){
 	CRClow = (calculatedCRC & 0xFF00) >>8;
 	calculatedCRC = CRChigh + CRClow;
 
-	//calculatedCRC = HAL_CRC_Calculate(&hcrc, frame, frame_length);
 	return calculatedCRC;
 }
 
+/**
+ * @brief Checks if CRC form given frame is correct.
+ * @param frame_length Length of frame (with CRC).
+ * @param frame Pointer to frame to check.
+ * @return Returns 0 if CRC is incorrect, else, 1.
+ */
 uint8_t bModbusCheckCRC (uint8_t frame_length, uint8_t *frame){
 	uint16_t crc = uModbusCalculateCRC(frame_length - 2, frame);
 	uint16_t frameCRC = (uint16_t)(*(frame + frame_length - 2));
@@ -43,7 +60,16 @@ uint8_t bModbusCheckCRC (uint8_t frame_length, uint8_t *frame){
 	return 0;
 }
 
-ModbusState vReadCoilStatus (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_coil, uint16_t number_of_coils, uint8_t *response_frame){
+/**
+ * @brief Modbus Read Coil Status (0x01)
+ * @param modbus Pointer for modbus structure
+ * @param slave_address Addres of slave to send request
+ * @param first_coil First coil address
+ * @param number_of_coils Number of coils to read
+ * @param response_frame Pointer to write response frame
+ * @return Communication result
+ */
+ModbusState_t vReadCoilStatus (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_coil, uint16_t number_of_coils, uint8_t *response_frame){
 	uint8_t transmit_frame_buffer[8];
 	uint16_t transmitCRC;
 	uint8_t coil_regs = number_of_coils / 8;
@@ -97,7 +123,7 @@ ModbusState vReadCoilStatus (ModbusHandler *modbus, uint8_t slave_address, uint1
 	return Modbus_CRCERR;
 }
 
-ModbusState vReadInputStatus (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame){
+ModbusState_t vReadInputStatus (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame){
 	uint8_t transmit_frame_buffer[8];
 	uint16_t transmitCRC;
 	uint8_t received_frame_length = (registers_count * 2) + 5;
@@ -148,7 +174,7 @@ ModbusState vReadInputStatus (ModbusHandler *modbus, uint8_t slave_address, uint
 	return Modbus_CRCERR;
 }
 
-ModbusState vModbusReadHoldingRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame){
+ModbusState_t vModbusReadHoldingRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame){
 	uint8_t transmit_frame_buffer[8];
 	uint16_t transmitCRC;
 	uint8_t received_frame_length = (registers_count * 2) + 5;
@@ -200,7 +226,7 @@ ModbusState vModbusReadHoldingRegisters (ModbusHandler *modbus, uint8_t slave_ad
 	return Modbus_CRCERR;
 }
 
-ModbusState vModbusReadInputRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame){
+ModbusState_t vModbusReadInputRegisters (ModbusHandler *modbus, uint8_t slave_address, uint16_t first_register_address, uint16_t registers_count, uint8_t *response_frame){
 	uint8_t transmit_frame_buffer[8];
 	uint16_t transmitCRC;
 	uint8_t received_frame_length = (registers_count * 2) + 5;
@@ -255,7 +281,7 @@ ModbusState vModbusReadInputRegisters (ModbusHandler *modbus, uint8_t slave_addr
 	return Modbus_CRCERR;
 }
 
-ModbusState vForceSingleCoil (ModbusHandler *modbus, uint8_t slave_address, uint16_t coil, uint8_t coil_state){
+ModbusState_t vForceSingleCoil (ModbusHandler *modbus, uint8_t slave_address, uint16_t coil, uint8_t coil_state){
 	uint8_t transmit_frame_buffer[8];
 	uint16_t transmitCRC;
 	uint8_t received_frame_length = 0;
