@@ -48,15 +48,15 @@ typedef union __attribute__((packed)){
 typedef union __attribute__((packed)){
 	struct{
 		EventTimestamp_t timestamp;
-		uint32_t eventCode;
-		uint32_t reserved;
+		uint8_t eventCode;
+		uint8_t additionalData[7];
 	};
 	uint8_t bytes[16];
 } DataLogEvent_t;
 
 DataLogStatus_t DataLog_Init (void);
 
-DataLogStatus_t DataLog_LogEvent (DataLogEventCode_t event);
+DataLogStatus_t DataLog_LogEvent (DataLogEventCode_t event, uint8_t* addData, uint8_t addDataLen);
 
 void DataLog_GetLastEvent (DataLogEvent_t* event);
 

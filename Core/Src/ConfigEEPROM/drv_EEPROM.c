@@ -9,6 +9,7 @@
 
 #include "drv_EEPROM.h"
 #include "FreeRTOS.h"
+#include "semphr.h"
 #include "cmsis_os.h"
 #include "task.h"
 #include "stm32f4xx_hal_i2c.h"

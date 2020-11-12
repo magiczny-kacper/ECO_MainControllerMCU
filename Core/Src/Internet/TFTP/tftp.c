@@ -143,7 +143,7 @@ static int open_tftp_socket(uint8_t sock)
 
 static int send_udp_packet(int socket, uint8_t *packet, uint32_t len, uint32_t ip, uint16_t port)
 {
-	int snd_len;
+	uint32_t snd_len;
 
 	ip = htonl(ip);
 
@@ -178,7 +178,7 @@ static int recv_udp_packet(int socket, uint8_t *packet, uint32_t len, uint32_t *
 
 		if(recv_len) {
 			recv_len = recvfrom(socket, packet, len, (uint8_t *)ip, port);
-			if(recv_len < 0) {
+			if(recv_len == 0) {
 				//DBG_PRINT(ERROR_DBG, "[%s] recvfrom error\r\n", __func__);
 				return -1;
 			}
@@ -630,7 +630,7 @@ int TFTP_run(void)
 
 	/* Receive Packet Process */
 	len = recv_udp_packet(g_tftp_socket, g_tftp_rcv_buf, MAX_MTU_SIZE, &from_ip, &from_port);
-	if(len < 0) {
+	if(len == 0) {
 #ifdef __TFTP_DEBUG__
 		DBG_PRINT(ERROR_DBG, "[%s] recv_udp_packet error\r\n", __func__);
 #endif

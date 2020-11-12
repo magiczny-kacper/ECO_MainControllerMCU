@@ -9,6 +9,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "FreeRTOS.h"
+#include "semphr.h"
 #include "cmsis_os.h"
 #include "main.h"
 
@@ -16,15 +17,67 @@
 #include "../../RuntimeStats/RuntimeStats.h"
 #include "../ConfigEEPROM/config.h"
 #include "../Flash/dataLog.h"
+#include "../Modbus/ModbusTCPServer.h"
 
 #include "wizchip_conf.h"
 #include "socket.h"
 #include "W5500/w5500.h"
 
+#include "../Internet/DNS/dns.h"
+#include "../Internet/SNTP/sntp.h"
+
+#define MODBUS_SOCKET 0
+#define MODBUS_PORT 502
+
+#define HTTP_SOCKET 1
+#define HTTP_PORT 80
+
+#define MQTT_SOCKET 2
+#define MQTT_PORT 1883
+
+#define TELNET_SOCKET 3
+#define TELNET_PORT 23
+
+#define DNS_SOCKET 6
+#define DNS_PORT 53
+
+#define SNTP_SOCKET 7
+#define SNTP_PORT 123
+
+#define TELNET_TX_BUF_SIZE 256
+#define TELNET_RX_BUF_SIZE 256
+
+#define MB_TX_BUF_SIZE 256
+#define MB_RX_BUF_SIZE 256
+
 extern osMutexId SPIMutexHandle;
 extern SPI_HandleTypeDef hspi1;
+extern osMutexId ModbusMutexHandle;
+extern ModbusRTUMaster_t mbPort;
+extern RTC_HandleTypeDef hrtc;
 
 static const uint8_t gretMsg[] = 	"ECO_MainMCU Telnet.\r\nSoftware version: 0.0.1\r\n";
+
+static uint8_t rcvBuf[TELNET_RX_BUF_SIZE], txBuf[TELNET_TX_BUF_SIZE];
+static uint8_t mbRxBuf[MB_RX_BUF_SIZE], mbTxBuf[MB_TX_BUF_SIZE];
+
+static uint8_t dnsBuf[MAX_DNS_BUF_SIZE];
+static const uint8_t dnsIp[4] = {8,8,8,8};
+
+static uint8_t ntpBuf[256];
+static const uint8_t* ntpUrl = "ntp1.tp.pl";
+static uint8_t ntpIp[4];
+
+uint16_t freesize;
+static const uint8_t bufSize[8] = {2, 2, 2, 2, 2, 2, 2, 2};
+static wiz_NetInfo netInfo = {	.mac 	= {0x00, 0x08, 0xdc, 0xab, 0xcd, 0xef},	// Mac address
+	                  	 .ip 	= {192, 168, 0, 192},					// IP address
+	                     .sn 	= {255, 255, 255, 0},					// Subnet mask
+	                     .gw 	= {192, 168, 0, 1}};					// Gateway address
+
+
+EthernetConfig_t ethConf;
+datetime time;
 
 static void cs_sel();
 
@@ -58,20 +111,9 @@ static void W5500_WriteByte(uint8_t byte) {
     W5500_WriteBuff(&byte, sizeof(byte));
 }
 
-#define TX_BUF_SIZE 256
-#define RX_BUF_SIZE 256
-
-uint16_t freesize;
-uint8_t rcvBuf[RX_BUF_SIZE], txBuf[TX_BUF_SIZE], bufSize[] = {2, 2, 2, 2, 2};
-static wiz_NetInfo netInfo = {	.mac 	= {0x00, 0x08, 0xdc, 0xab, 0xcd, 0xef},	// Mac address
-	                  	 .ip 	= {192, 168, 0, 192},					// IP address
-	                     .sn 	= {255, 255, 255, 0},					// Subnet mask
-	                     .gw 	= {192, 168, 0, 1}};					// Gateway address
-
-EthernetConfig_t ethConf;
-
-void EthernetTask(void const * argument)
+void EthernetTask(void* argument)
 {
+	(void) argument;
   /* USER CODE BEGIN EthernetTask */
 	BaseType_t xMoreDataToFollow;
 	intr_kind interruptSource;
@@ -80,6 +122,7 @@ void EthernetTask(void const * argument)
 	uint8_t remoteIP[4][4];
 	uint16_t remotePort[4];
 	int32_t rcvSize = 0;
+	int32_t mbRcvSize = 0;
 
 	reg_wizchip_cs_cbfunc(cs_sel, cs_desel);
 	reg_wizchip_spi_cbfunc(W5500_ReadByte, W5500_WriteByte);
@@ -100,33 +143,36 @@ void EthernetTask(void const * argument)
 	wizchip_init(bufSize, bufSize);
 
 	wizchip_setnetinfo(&netInfo);
-	wizchip_setinterruptmask(IK_SOCK_3);
+	wizchip_setinterruptmask(IK_SOCK_0 | IK_SOCK_1 | IK_SOCK_3 | IK_SOCK_7);
 	wizchip_getnetinfo(&netInfo);
 
-	// Modbus Port
-	if(socket(0, Sn_MR_TCP, 502, 0) == 0) {
-		  	  /* Put socket in LISTEN mode. This means we are creating a TCP server */
-		if(listen(0) == SOCK_OK) {
 
+
+	// Modbus Port
+	if(socket(MODBUS_SOCKET, Sn_MR_TCP, MODBUS_PORT, SF_TCP_NODELAY) == MODBUS_SOCKET) {
+		  	  /* Put socket in LISTEN mode. This means we are creating a TCP server */
+		if(listen(MODBUS_SOCKET) == SOCK_OK) {
+			setSn_IMR(MODBUS_SOCKET, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
 		}
 	}
 
-	// HTTP Port (WebServer)
-	/*if(socket(1, Sn_MR_TCP, 80, 0) == 0){
-		if(listen(1) == SOCK_OK) {
-		}
-	}*/
-
-	// MQTT Port
-	//if(socket(2, Sn_MR_TCP, 1883, 0) == 0){
-
-	//}
-
 	// Telnet Port (CLI, debug)
-	if(socket(3, Sn_MR_TCP, 23, SF_TCP_NODELAY) == 3){
-		if(listen(3) == SOCK_OK) {
-			setSn_IMR(3, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
+	if(socket(TELNET_SOCKET, Sn_MR_TCP, TELNET_PORT, SF_TCP_NODELAY) == TELNET_SOCKET){
+		if(listen(TELNET_SOCKET) == SOCK_OK) {
+			setSn_IMR(TELNET_SOCKET, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
 		}
+	}
+
+	if(socket(DNS_SOCKET, Sn_MR_UDP, DNS_PORT, 0) == DNS_SOCKET){
+		setSn_IMR(DNS_SOCKET, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
+		DNS_init(DNS_SOCKET, dnsBuf);
+		DNS_run(dnsIp, ntpUrl, ntpIp);
+	}
+
+	if(socket(SNTP_SOCKET, Sn_MR_UDP, SNTP_PORT, 0) == SNTP_SOCKET){
+		setSn_IMR(SNTP_SOCKET, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
+		SNTP_init(SNTP_SOCKET, ntpIp, 25, ntpBuf);
+		SNTP_run(&time);
 	}
 
   /* Infinite loop */
@@ -153,53 +199,89 @@ void EthernetTask(void const * argument)
 				}
 //------------------------------------------------------------------------------------------------------
 				if(interruptSource & IK_SOCK_0){
-					interrupt = getSn_IR(0);
+					freesize = getSn_TxMAX(MODBUS_SOCKET);
+					interrupt = getSn_IR(MODBUS_SOCKET);
+					setSn_IR(MODBUS_SOCKET, interrupt);
 					if(interrupt & Sn_IR_CON){
-						getsockopt(0, SO_DESTIP, &remoteIP[0]);
-						getsockopt(0, SO_DESTPORT, (uint8_t*)&remotePort[0]);
+
+					}
+
+					if(interrupt & Sn_IR_RECV){
+						int32_t mbTxSize;
+						mbRcvSize = recv(MODBUS_SOCKET, mbRxBuf, MB_RX_BUF_SIZE);
+						RuntimeStats_ModbusSlaveRqAllInc();
+						xSemaphoreTake(ModbusMutexHandle, portMAX_DELAY);
+						mbTxSize = (int16_t)ModbusTCPServer_Proc(&mbPort, mbRxBuf, mbRcvSize, mbTxBuf);
+						xSemaphoreGive(ModbusMutexHandle);
+						if(mbTxSize > MODBUS_SOCKET){
+							RuntimeStats_ModbusSlaveRqOkInc();
+							freesize = send(MODBUS_SOCKET, mbTxBuf, mbTxSize);
+							RuntimeStats_ModbusSlaveRespInc();
+						}else{
+							RuntimeStats_ModbusSlaveRqErrInc();
+						}
+					}
+
+					if(interrupt & Sn_IR_SENDOK){
+						memset(mbTxBuf, 0, MB_TX_BUF_SIZE);
+						ClrSiS(MODBUS_SOCKET);
+					}
+
+					if((interrupt & Sn_IR_DISCON) || (interrupt & Sn_IR_TIMEOUT)){
+						disconnect(MODBUS_SOCKET);
+						if(socket(MODBUS_SOCKET, Sn_MR_TCP, MODBUS_PORT, SF_TCP_NODELAY) == MODBUS_SOCKET){
+							if(listen(MODBUS_SOCKET) == SOCK_OK) {
+								setSn_IMR(MODBUS_SOCKET, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
+							}
+						}
 					}
 				}
 //------------------------------------------------------------------------------------------------------
 				if(interruptSource & IK_SOCK_1){
-					interrupt = getSn_IR(1);
+					interrupt = getSn_IR(HTTP_SOCKET);
 					if(interrupt & Sn_IR_CON){
-						getsockopt(1, SO_DESTIP, &remoteIP[1]);
-						getsockopt(1, SO_DESTPORT, (uint8_t*)&remotePort[1]);
+						getsockopt(HTTP_SOCKET, SO_DESTIP, &remoteIP[1]);
+						getsockopt(HTTP_SOCKET, SO_DESTPORT, (uint8_t*)&remotePort[1]);
 
+					}
+
+					if(interrupt & Sn_IR_RECV){
+						RuntimeStats_TelnetRxInc();
+						rcvSize += recv(HTTP_SOCKET, &rcvBuf[rcvSize], TELNET_RX_BUF_SIZE);
 					}
 				}
 //------------------------------------------------------------------------------------------------------
 				if(interruptSource & IK_SOCK_2){
-					interrupt = getSn_IR(2);
+					interrupt = getSn_IR(MQTT_SOCKET);
 				}
 //------------------------------------------------------------------------------------------------------
 				if(interruptSource & IK_SOCK_3){
-					freesize = getSn_TxMAX(3);
-					interrupt = getSn_IR(3);
+					freesize = getSn_TxMAX(TELNET_SOCKET);
+					interrupt = getSn_IR(TELNET_SOCKET);
 					setSn_IR(3, interrupt);
 					if(interrupt & Sn_IR_CON){
-						getsockopt(3, SO_DESTIP, &remoteIP[3]);
-						getsockopt(3, SO_DESTPORT, (uint8_t*)&remotePort[3]);
-						RuntimeStats_TelnetCurrIPSet(&remoteIP[3][0]);
+						getsockopt(TELNET_SOCKET, SO_DESTIP, &remoteIP[TELNET_SOCKET]);
+						getsockopt(TELNET_SOCKET, SO_DESTPORT, (uint8_t*)&remotePort[TELNET_SOCKET]);
+						RuntimeStats_TelnetCurrIPSet(&remoteIP[TELNET_SOCKET][0]);
 						RuntimeStats_TelnetTxInc();
-						DataLog_LogEvent(EV_TELNET_CONN);
-						freesize = send(3, (uint8_t*)gretMsg, 47);
+						DataLog_LogEvent(EV_TELNET_CONN, NULL, 0);
+						freesize = send(TELNET_SOCKET, (uint8_t*)gretMsg, 47);
 						first_frame = 1;
 					}
 
 					if(interrupt & Sn_IR_RECV){
 						if(first_frame == 0){
 							RuntimeStats_TelnetRxInc();
-							rcvSize += recv(3, &rcvBuf[rcvSize], RX_BUF_SIZE);
+							rcvSize += recv(TELNET_SOCKET, &rcvBuf[rcvSize], TELNET_RX_BUF_SIZE);
 							while(((rcvBuf[rcvSize - 1] == '\r') || (rcvBuf[rcvSize - 1] == '\n')) && (rcvSize > 0)){
 								rcvBuf[rcvSize - 1] = 0;
 								rcvSize--;
 							}
 
 							do{
-								xMoreDataToFollow = FreeRTOS_CLIProcessCommand(&rcvBuf, &txBuf, TX_BUF_SIZE);
+								xMoreDataToFollow = FreeRTOS_CLIProcessCommand(&rcvBuf, &txBuf, TELNET_TX_BUF_SIZE);
 								RuntimeStats_TelnetTxInc();
-								freesize = send(3, txBuf, strlen((char*)txBuf));
+								freesize = send(TELNET_SOCKET, txBuf, strlen((char*)txBuf));
 								vTaskDelay(1);
 							}while(xMoreDataToFollow != pdFALSE);
 							rcvSize = 0;
@@ -210,17 +292,17 @@ void EthernetTask(void const * argument)
 					}
 
 					if(interrupt & Sn_IR_SENDOK){
-						memset(txBuf, 0, TX_BUF_SIZE);
-						ClrSiS(3);
+						memset(txBuf, 0, TELNET_TX_BUF_SIZE);
+						ClrSiS(TELNET_SOCKET);
 					}
 
-					if(interrupt & Sn_IR_DISCON || interrupt & Sn_IR_TIMEOUT){
+					if((interrupt & Sn_IR_DISCON) || (interrupt & Sn_IR_TIMEOUT)){
 						RuntimeStats_TelnetLastIPSet();
-						DataLog_LogEvent(EV_TELNET_DISCON);
-						disconnect(3);
-						if(socket(3, Sn_MR_TCP, 23, SF_TCP_NODELAY) == 3){
-							if(listen(3) == SOCK_OK) {
-								setSn_IMR(3, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
+						DataLog_LogEvent(EV_TELNET_DISCON, NULL, 0);
+						disconnect(TELNET_SOCKET);
+						if(socket(TELNET_SOCKET, Sn_MR_TCP, TELNET_PORT, SF_TCP_NODELAY) == 3){
+							if(listen(TELNET_SOCKET) == SOCK_OK) {
+								setSn_IMR(TELNET_SOCKET, (Sn_IR_RECV | Sn_IR_DISCON | Sn_IR_CON | Sn_IR_TIMEOUT | Sn_IR_SENDOK));
 							}
 						}
 					}
@@ -241,6 +323,27 @@ void EthernetTask(void const * argument)
 //------------------------------------------------------------------------------------------------------
 				if(interruptSource & IK_SOCK_7){
 					interrupt = getSn_IR(7);
+					if(SNTP_run(&time)){
+						RTC_TimeTypeDef timeh;
+						RTC_DateTypeDef date;
+						uint8_t yr = (uint8_t)(time.yy - 2000);
+
+						HAL_RTC_GetTime(&hrtc, &timeh, RTC_FORMAT_BIN);
+						HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+						if((timeh.Hours != time.hh) || (timeh.Minutes != time.mm) ||
+							(date.Date != time.dd) || (date.Month != time.mo) || (date.Year != yr)){
+							date.Date = time.dd;
+							date.Month = time.mo;
+							date.Year = yr;
+							timeh.Hours = time.hh;
+							timeh.Minutes = time.mm;
+
+							HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+							HAL_RTC_SetTime(&hrtc, &timeh, RTC_FORMAT_BIN);
+							DataLog_LogEvent(EV_RTC_UPDATE, NULL, 0);
+						}
+					}
+
 				}
 			}
 		}
@@ -248,3 +351,6 @@ void EthernetTask(void const * argument)
   /* USER CODE END EthernetTask */
 }
 
+void EthernetTask_Request (uint32_t request){
+
+}

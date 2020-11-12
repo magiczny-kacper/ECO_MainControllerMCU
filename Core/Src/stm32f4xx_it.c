@@ -21,11 +21,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
-#include "FreeRTOS.h"
-#include "task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "UART_DMA.h"
+#include "Modbus/ModbusRTUMaster.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,6 +71,7 @@ extern TIM_HandleTypeDef htim10;
 /* USER CODE BEGIN EV */
 extern UARTDMA_HandleTypeDef nextion_small_comm;
 extern UARTDMA_HandleTypeDef nextion_big_comm;
+extern ModbusRTUMaster_t mbPort;;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -191,7 +191,8 @@ void EXTI1_IRQHandler(void)
 void DMA1_Stream5_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream5_IRQn 0 */
-
+	UARTDMA_DmaIrqHandler(&mbPort.dma);
+		return;
   /* USER CODE END DMA1_Stream5_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart2_rx);
   /* USER CODE BEGIN DMA1_Stream5_IRQn 1 */
@@ -250,7 +251,9 @@ void USART1_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
-
+	if(UARTDMA_UartIrqHandler(&mbPort.dma)){
+		  return;
+	}
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */

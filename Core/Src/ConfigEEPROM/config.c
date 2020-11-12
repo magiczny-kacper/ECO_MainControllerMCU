@@ -41,7 +41,7 @@ static uint32_t Config_CalculateCRC (void);
 static CONFStatus_t Config_CheckData (void);
 
 CONFStatus_t Config_Init(I2C_HandleTypeDef* iic){
-	uint32_t retval = 0;
+	int32_t retval = 0;
 
 	configuartionStatus = CONF_STAT_INIT;
 
@@ -56,9 +56,10 @@ CONFStatus_t Config_Init(I2C_HandleTypeDef* iic){
 	if(retval == CONF_OK){
 		configuartionStatus = CONF_STAT_LOADED;
 	}else{
+
+		Config_Copy(&configuration, &defaultConfig);
+		configuration.crc = Config_CalculateCRC();
 		if((retval == CONF_ERR_NOCONF) || (retval == CONF_ERR_CRC)){
-			Config_Copy(&configuration, &defaultConfig);
-			configuration.crc = Config_CalculateCRC();
 			retval = Config_Save();
 			configuartionStatus = CONF_STAT_LOADED;
 		}else{
@@ -194,11 +195,11 @@ CONFStatus_t Config_GetConfig (ConfigStruct_t* config){
 CONFStatus_t Config_GetEthernetConfig (EthernetConfig_t* config){
 	if(config == NULL) return CONF_ERR_NULL;
 
-	if(configuartionStatus == CONF_STAT_LOADED){
+	//if(configuartionStatus == CONF_STAT_LOADED){
 		memcpy(config, &configuration.EthernetConfig, ETH_CONFIG_BYTES_LEN);
 		return CONF_OK;
-	}
-	return CONF_ERR_NOCONF;
+	//}
+	//return CONF_ERR_NOCONF;
 }
 
 CONFStatus_t Config_GetRegConfig (RegulationConfig_t* config){

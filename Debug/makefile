@@ -12,7 +12,7 @@ RM := rm -rf
 -include Middlewares/Third_Party/FreeRTOS_CLI/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
--include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/subdir.mk
+-include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
@@ -25,6 +25,16 @@ RM := rm -rf
 -include Core/Src/RuntimeStats/subdir.mk
 -include Core/Src/RingBuffer/subdir.mk
 -include Core/Src/Modbus/subdir.mk
+-include Core/Src/Internet/httpServer/subdir.mk
+-include Core/Src/Internet/TFTP/subdir.mk
+-include Core/Src/Internet/SNTP/subdir.mk
+-include Core/Src/Internet/SNMP/subdir.mk
+-include Core/Src/Internet/MQTT/MQTTPacket/src/subdir.mk
+-include Core/Src/Internet/MQTT/subdir.mk
+-include Core/Src/Internet/FTPServer/subdir.mk
+-include Core/Src/Internet/FTPClient/subdir.mk
+-include Core/Src/Internet/DNS/subdir.mk
+-include Core/Src/Internet/DHCP/subdir.mk
 -include Core/Src/Flash/subdir.mk
 -include Core/Src/Expander/subdir.mk
 -include Core/Src/Ethernet/W5500/subdir.mk

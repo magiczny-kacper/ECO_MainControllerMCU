@@ -15,6 +15,6 @@
 
 
 
-void DisplayTask(void const * argument);
+void DisplayTask(void* argument);
 
 #endif /* SRC_TASKS_DISPLAYTASK_DISPLAYTASK_H_ */

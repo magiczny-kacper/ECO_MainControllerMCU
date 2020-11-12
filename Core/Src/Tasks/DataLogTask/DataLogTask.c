@@ -8,6 +8,7 @@
 #include "DataLogTask.h"
 
 #include "cmsis_os.h"
+#include "semphr.h"
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
@@ -28,7 +29,7 @@ void FLASH_ChipDeselect (void){
 	xSemaphoreGive(SPIMutexHandle);
 }
 
-void DataLogTask(void const * argument)
+void DataLogTask(void* argument)
 {
   /* USER CODE BEGIN DataLog */
 	if(DataLog_Init() != DL_OK){

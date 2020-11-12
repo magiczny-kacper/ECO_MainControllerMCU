@@ -13,6 +13,8 @@
 
 #include "stm32f4xx_hal.h"
 
+#include "printf.h"
+
 #define HEAD_ADDR 0
 #define FIRSTLOG_ADDR
 
@@ -21,7 +23,6 @@ typedef union{
 	uint8_t bytes[4];
 } DataLogMemHead_t;
 
-static uint8_t pageBuf[256];
 static DataLogMemHead_t logHead;
 
 extern osMessageQId DataLogQueueHandle;
@@ -50,14 +51,14 @@ DataLogStatus_t DataLog_Init (void){
 
 	logHead.nextSavedLog = HAL_RTCEx_BKUPRead(&hrtc, 1);
 	if(retval == DL_OK){
-		DataLog_LogEvent(EV_STARTUP);
+		DataLog_LogEvent(EV_STARTUP, NULL, 0);
 
 		DataLog_GetLastEvent(&lastEvent);
 	}
 	return retval;
 }
 
-DataLogStatus_t DataLog_LogEvent (DataLogEventCode_t event){
+DataLogStatus_t DataLog_LogEvent (DataLogEventCode_t event, uint8_t* addData, uint8_t addDataLen){
 	DataLogEvent_t eventS;
 	RTC_TimeTypeDef time;
 	RTC_DateTypeDef date;
@@ -74,8 +75,12 @@ DataLogStatus_t DataLog_LogEvent (DataLogEventCode_t event){
 	eventS.timestamp.fields.empty = 0;
 
 	eventS.eventCode = event;
-	eventS.reserved = 0;
+	memset(eventS.additionalData, 0, 7);
+	if((addData != NULL) && (addDataLen != 0)){
+		memcpy(eventS.additionalData, addData, addDataLen);
+	}
 	xQueueSend(DataLogQueueHandle, &eventS, 10);
+	return DL_OK;
 }
 
 void DataLog_GetLastEvent (DataLogEvent_t* event){
@@ -120,7 +125,7 @@ void DataLog_EreaseMemory (void){
 	W25qxx_EraseChip();
 	logHead.nextSavedLog = 0;
 	HAL_RTCEx_BKUPWrite(&hrtc, 1, logHead.nextSavedLog);
-	DataLog_LogEvent(EV_FLASH_CLR);
+	DataLog_LogEvent(EV_FLASH_CLR, NULL, 0);
 }
 
 uint32_t DataLog_GetCurrentMemPointer (void){
@@ -146,6 +151,7 @@ uint32_t DataLog_GetSavedEventsCnt (void){
  * @param inc
  */
 static void DataLog_UpdateMemPointer (uint8_t inc){
+	(void) inc;
 	logHead.nextSavedLog += sizeof(DataLogEvent_t);
 
 	if(logHead.nextSavedLog >= w25qxx.CapacityInKiloByte * 1024){

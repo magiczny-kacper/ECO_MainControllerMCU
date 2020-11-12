@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-void EthernetTask(void const * argument);
+void EthernetTask(void* argument);
+
+void EthernetTask_Request (uint32_t request);
 
 #endif /* SRC_TASKS_ETHERNETTASK_ETHERNETTASK_H_ */

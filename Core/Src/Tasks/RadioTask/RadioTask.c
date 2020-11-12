@@ -8,6 +8,7 @@
 #include "RadioTask.h"
 
 #include "FreeRTOS.h"
+#include "semphr.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 
@@ -31,7 +32,7 @@ void NRF_ChipDeselect (void){
 	xSemaphoreGive(SPIMutexHandle);
 }
 
-void RadioTask(void const * argument)
+void RadioTask(void* argument)
 {
 	const uint8_t ecoIOinitMSG[] = "IsAlive";
   /* USER CODE BEGIN RadioComm */

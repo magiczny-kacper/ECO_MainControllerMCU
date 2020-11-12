@@ -60,7 +60,7 @@ typedef struct _datetime
 
 #define ntp_port		123                     //ntp server port number
 #define SECS_PERDAY		86400UL             	// seconds in a day = 60*60*24
-#define UTC_ADJ_HRS		9              	        // SEOUL : GMT+9
+#define UTC_ADJ_HRS		1              	        // SEOUL : GMT+9
 #define EPOCH			1900                    // NTP start year
 
 void get_seconds_from_ntp_server(uint8_t *buf, uint16_t idx);

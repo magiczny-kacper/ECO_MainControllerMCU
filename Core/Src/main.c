@@ -18,7 +18,6 @@
   */
 
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
@@ -33,8 +32,9 @@
 #include "Tasks/RadioTask/RadioTask.h"
 #include "ConfigEEPROM/config.h"
 #include "Flash/dataLog.h"
-#include "Modbus/Modbus.h"
+#include "Modbus/ModbusRTUMaster.h"
 
+#include "Internet/DNS/dns.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,16 +75,73 @@ DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
 
-osThreadId defaultTaskHandle;
-osThreadId PowerRegulationHandle;
-osThreadId DiplaysHandle;
-osThreadId EthernetHandle;
-osThreadId nRF24L01Handle;
-osThreadId DataLogHandle;
-osMessageQId DataLogQueueHandle;
-osTimerId ConfigHandle;
-osMutexId SPIMutexHandle;
-osMutexId I2CMutexHandle;
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
+/* Definitions for PowerRegulation */
+osThreadId_t PowerRegulationHandle;
+const osThreadAttr_t PowerRegulation_attributes = {
+  .name = "PowerRegulation",
+  .priority = (osPriority_t) osPriorityRealtime,
+  .stack_size = 256 * 4
+};
+/* Definitions for Diplays */
+osThreadId_t DiplaysHandle;
+const osThreadAttr_t Diplays_attributes = {
+  .name = "Diplays",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 256 * 4
+};
+/* Definitions for Ethernet */
+osThreadId_t EthernetHandle;
+const osThreadAttr_t Ethernet_attributes = {
+  .name = "Ethernet",
+  .priority = (osPriority_t) osPriorityHigh,
+  .stack_size = 256 * 4
+};
+/* Definitions for nRF24L01 */
+osThreadId_t nRF24L01Handle;
+const osThreadAttr_t nRF24L01_attributes = {
+  .name = "nRF24L01",
+  .priority = (osPriority_t) osPriorityAboveNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for DataLog */
+osThreadId_t DataLogHandle;
+const osThreadAttr_t DataLog_attributes = {
+  .name = "DataLog",
+  .priority = (osPriority_t) osPriorityBelowNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for DataLogQueue */
+osMessageQueueId_t DataLogQueueHandle;
+const osMessageQueueAttr_t DataLogQueue_attributes = {
+  .name = "DataLogQueue"
+};
+/* Definitions for Config */
+osTimerId_t ConfigHandle;
+const osTimerAttr_t Config_attributes = {
+  .name = "Config"
+};
+/* Definitions for SPIMutex */
+osMutexId_t SPIMutexHandle;
+const osMutexAttr_t SPIMutex_attributes = {
+  .name = "SPIMutex"
+};
+/* Definitions for I2CMutex */
+osMutexId_t I2CMutexHandle;
+const osMutexAttr_t I2CMutex_attributes = {
+  .name = "I2CMutex"
+};
+/* Definitions for ModbusMutex */
+osMutexId_t ModbusMutexHandle;
+const osMutexAttr_t ModbusMutex_attributes = {
+  .name = "ModbusMutex"
+};
 /* USER CODE BEGIN PV */
 unsigned long ulHighFreqTimerTicks;
 /* USER CODE END PV */
@@ -105,13 +162,13 @@ static void MX_ADC1_Init(void);
 static void MX_RTC_Init(void);
 static void MX_CRC_Init(void);
 static void MX_TIM11_Init(void);
-void StartDefaultTask(void const * argument);
-void RegulationTask(void const * argument);
-void DisplayTask(void const * argument);
-void EthernetTask(void const * argument);
-void RadioTask(void const * argument);
-void DataLogTask(void const * argument);
-void ConfigSaveTmr(void const * argument);
+void StartDefaultTask(void *argument);
+void RegulationTask(void *argument);
+void DisplayTask(void *argument);
+void EthernetTask(void *argument);
+void RadioTask(void *argument);
+void DataLogTask(void *argument);
+void ConfigSaveTmr(void *argument);
 
 /* USER CODE BEGIN PFP */
 void Nextion1_DataRcv (void);
@@ -130,6 +187,7 @@ void ModifyEEPROMStruct (uint32_t data, int32_t value);
   * @retval int
   */
 int main(void)
+
 {
   /* USER CODE BEGIN 1 */
 
@@ -171,14 +229,17 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
   /* Create the mutex(es) */
-  /* definition and creation of SPIMutex */
-  osMutexDef(SPIMutex);
-  SPIMutexHandle = osMutexCreate(osMutex(SPIMutex));
+  /* creation of SPIMutex */
+  SPIMutexHandle = osMutexNew(&SPIMutex_attributes);
 
-  /* definition and creation of I2CMutex */
-  osMutexDef(I2CMutex);
-  I2CMutexHandle = osMutexCreate(osMutex(I2CMutex));
+  /* creation of I2CMutex */
+  I2CMutexHandle = osMutexNew(&I2CMutex_attributes);
+
+  /* creation of ModbusMutex */
+  ModbusMutexHandle = osMutexNew(&ModbusMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -190,47 +251,39 @@ int main(void)
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* Create the timer(s) */
-  /* definition and creation of Config */
-  osTimerDef(Config, ConfigSaveTmr);
-  ConfigHandle = osTimerCreate(osTimer(Config), osTimerOnce, NULL);
+  /* creation of Config */
+  ConfigHandle = osTimerNew(ConfigSaveTmr, osTimerOnce, NULL, &Config_attributes);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* definition and creation of DataLogQueue */
-  osMessageQDef(DataLogQueue, 16, 16);
-  DataLogQueueHandle = osMessageCreate(osMessageQ(DataLogQueue), NULL);
+  /* creation of DataLogQueue */
+  DataLogQueueHandle = osMessageQueueNew (16, 16, &DataLogQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityIdle, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* definition and creation of PowerRegulation */
-  osThreadDef(PowerRegulation, RegulationTask, osPriorityRealtime, 0, 256);
-  PowerRegulationHandle = osThreadCreate(osThread(PowerRegulation), NULL);
+  /* creation of PowerRegulation */
+  PowerRegulationHandle = osThreadNew(RegulationTask, NULL, &PowerRegulation_attributes);
 
-  /* definition and creation of Diplays */
-  osThreadDef(Diplays, DisplayTask, osPriorityNormal, 0, 256);
-  DiplaysHandle = osThreadCreate(osThread(Diplays), NULL);
+  /* creation of Diplays */
+  DiplaysHandle = osThreadNew(DisplayTask, NULL, &Diplays_attributes);
 
-  /* definition and creation of Ethernet */
-  osThreadDef(Ethernet, EthernetTask, osPriorityHigh, 0, 256);
-  EthernetHandle = osThreadCreate(osThread(Ethernet), NULL);
+  /* creation of Ethernet */
+  EthernetHandle = osThreadNew(EthernetTask, NULL, &Ethernet_attributes);
 
-  /* definition and creation of nRF24L01 */
-  osThreadDef(nRF24L01, RadioTask, osPriorityAboveNormal, 0, 256);
-  nRF24L01Handle = osThreadCreate(osThread(nRF24L01), NULL);
+  /* creation of nRF24L01 */
+  nRF24L01Handle = osThreadNew(RadioTask, NULL, &nRF24L01_attributes);
 
-  /* definition and creation of DataLog */
-  osThreadDef(DataLog, DataLogTask, osPriorityBelowNormal, 0, 256);
-  DataLogHandle = osThreadCreate(osThread(DataLog), NULL);
+  /* creation of DataLog */
+  DataLogHandle = osThreadNew(DataLogTask, NULL, &DataLog_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -265,7 +318,8 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
-  /** Initializes the CPU, AHB and APB busses clocks
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -280,7 +334,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks
+  /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -608,7 +662,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
+  htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
@@ -748,7 +802,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 19200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -843,13 +897,13 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Stream5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA2_Stream1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
   /* DMA2_Stream2_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 
 }
@@ -1002,11 +1056,11 @@ static void MX_GPIO_Init(void)
 	}
 }*/
 
-extern ModbusHandler mbPort;
+extern ModbusRTUMaster_t mbPort;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	if(huart -> Instance == USART2){
-		vModbusReceieveResponseCallback(&mbPort);
+		ModbusRTUMaster_ReceieveResponseCallback(&mbPort);
 	}
 }
 
@@ -1053,7 +1107,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -1071,7 +1125,7 @@ void StartDefaultTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_RegulationTask */
-__weak void RegulationTask(void const * argument)
+__weak void RegulationTask(void *argument)
 {
   /* USER CODE BEGIN RegulationTask */
   /* Infinite loop */
@@ -1089,7 +1143,7 @@ __weak void RegulationTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_DisplayTask */
-__weak void DisplayTask(void const * argument)
+__weak void DisplayTask(void *argument)
 {
   /* USER CODE BEGIN DisplayTask */
   /* Infinite loop */
@@ -1107,7 +1161,7 @@ __weak void DisplayTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_EthernetTask */
-__weak void EthernetTask(void const * argument)
+__weak void EthernetTask(void *argument)
 {
   /* USER CODE BEGIN EthernetTask */
   /* Infinite loop */
@@ -1125,7 +1179,7 @@ __weak void EthernetTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_RadioTask */
-__weak void RadioTask(void const * argument)
+__weak void RadioTask(void *argument)
 {
   /* USER CODE BEGIN RadioTask */
   /* Infinite loop */
@@ -1143,7 +1197,7 @@ __weak void RadioTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_DataLogTask */
-__weak void DataLogTask(void const * argument)
+__weak void DataLogTask(void *argument)
 {
   /* USER CODE BEGIN DataLogTask */
   /* Infinite loop */
@@ -1155,14 +1209,14 @@ __weak void DataLogTask(void const * argument)
 }
 
 /* ConfigSaveTmr function */
-__weak void ConfigSaveTmr(void const * argument)
+__weak void ConfigSaveTmr(void *argument)
 {
   /* USER CODE BEGIN ConfigSaveTmr */
   
   /* USER CODE END ConfigSaveTmr */
 }
 
- /**
+/**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM10 interrupt took place, inside
   * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
@@ -1179,6 +1233,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM10) {
     HAL_IncTick();
+    DNS_time_handler();
   }
   /* USER CODE BEGIN Callback 1 */
 

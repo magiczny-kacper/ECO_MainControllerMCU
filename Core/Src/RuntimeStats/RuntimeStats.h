@@ -62,4 +62,15 @@ uint32_t RuntimeStats_ModbusMasterRqSendGet (void);
 uint32_t RuntimeStats_ModbusMasterNoRespGet (void);
 uint32_t RuntimeStats_ModbusMasterRespOkGet (void);
 uint32_t RuntimeStats_ModbusMasterWrongRespGet (void);
+
+void RuntimeStats_ModbusSlaveRqAllInc (void);
+void RuntimeStats_ModbusSlaveRqOkInc (void);
+void RuntimeStats_ModbusSlaveRqErrInc (void);
+void RuntimeStats_ModbusSlaveRespInc (void);
+
+uint32_t RuntimeStats_ModbusSlaveRqAllGet (void);
+uint32_t RuntimeStats_ModbusSlaveRqOkGet (void);
+uint32_t RuntimeStats_ModbusSlaveRqErrGet (void);
+uint32_t RuntimeStats_ModbusSlaveRespGet (void);
+
 #endif /* SRC_RUNTIMESTATS_RUNTIMESTATS_H_ */

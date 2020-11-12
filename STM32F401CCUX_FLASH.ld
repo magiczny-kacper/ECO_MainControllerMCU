@@ -36,7 +36,8 @@ _Min_Stack_Size = 0x400 ;	/* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 64K
+  RTOS_STACK	(xrw)	: ORIGIN = 0x20000000,   LENGTH = 9K
+  RAM    (xrw)    : ORIGIN = 0x20002400,   LENGTH = 55K
   FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 256K
 }
 
@@ -162,7 +163,24 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
+	
+  .rtos_stack :
+  {
 
+    . = ALIGN(4);
+
+    _srtos_stack = .;       /* create a global symbol at ccmram start */
+
+    *(.rtos_stack)
+
+    *(.rtos_stack*)
+
+    . = ALIGN(4);
+
+    _ertos_stack = .;       /* create a global symbol at ccmram end */
+
+  } >RTOS_STACK
+  
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {

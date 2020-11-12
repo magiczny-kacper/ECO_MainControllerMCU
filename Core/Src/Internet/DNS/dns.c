@@ -539,7 +539,7 @@ int8_t DNS_run(uint8_t * dns_ip, uint8_t * name, uint8_t * ip_from_dns)
 #ifdef _DNS_DEBUG_
 			printf("> DNS Server is not responding : %d.%d.%d.%d\r\n", dns_ip[0], dns_ip[1], dns_ip[2], dns_ip[3]);
 #endif
-			wizchip_close(DNS_SOCKET);
+			close(DNS_SOCKET);
 			return 0; // timeout occurred
 		}
 		else if (ret_check_timeout == 0) {
@@ -560,5 +560,10 @@ int8_t DNS_run(uint8_t * dns_ip, uint8_t * name, uint8_t * ip_from_dns)
 /* DNS TIMER HANDLER */
 void DNS_time_handler(void)
 {
-	dns_1s_tick++;
+	static uint16_t ticks = 0;
+	ticks++;
+	if(ticks >= 1000){
+		dns_1s_tick++;
+		ticks = 0;
+	}
 }

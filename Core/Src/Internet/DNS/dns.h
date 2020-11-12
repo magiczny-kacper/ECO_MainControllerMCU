@@ -70,8 +70,8 @@ extern "C" {
  */
 #define  MAX_DOMAIN_NAME   16       // for example "www.google.com"
 
-#define	MAX_DNS_RETRY     2        ///< Requery Count
-#define	DNS_WAIT_TIME     3        ///< Wait response time. unit 1s.
+#define	MAX_DNS_RETRY     3        ///< Requery Count
+#define	DNS_WAIT_TIME     1        ///< Wait response time. unit 1s.
 
 #define	IPPORT_DOMAIN     53       ///< DNS server port number
 

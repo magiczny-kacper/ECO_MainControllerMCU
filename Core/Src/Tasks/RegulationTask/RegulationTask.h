@@ -127,7 +127,7 @@ typedef struct{
 	RegulationConfig_t parameters;
 } RegTaskData_t;
 
-void RegulationTask(void const * argument);
+void RegulationTask(void* argument);
 
 RegTaskData_t* RegulationTask_GetData (void);
 

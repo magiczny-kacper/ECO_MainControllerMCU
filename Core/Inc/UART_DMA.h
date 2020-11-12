@@ -9,12 +9,15 @@
  *      GitHub:  https://github.com/lamik/UART_DMA_receiving
  *      Contact: mateusz@msalamon.pl
 */
+#ifndef UARTDMA_H
+#define UARTDMA_H
+
 #include "stm32f4xx_hal.h"
 
-#define DMA_RX_BUFFER_SIZE          30
+#define DMA_RX_BUFFER_SIZE          128
 #define UART_BUFFER_SIZE           	128
 
-typedef struct
+typedef struct __attribute__ ((packed))
 {
 	UART_HandleTypeDef* huart;					// UART handler
 
@@ -25,9 +28,16 @@ typedef struct
 	uint16_t UartBufferTail;
 	uint8_t  UartBufferLines;
 	void (*callback)();
+	void* callbackArgs;
 }UARTDMA_HandleTypeDef;
 
-void UARTDMA_UartIrqHandler(UARTDMA_HandleTypeDef *huartdma);
+uint8_t UARTDMA_UartIrqHandler(UARTDMA_HandleTypeDef *huartdma);
 void UARTDMA_DmaIrqHandler(UARTDMA_HandleTypeDef *huartdma);
 
 void UARTDMA_Init(UARTDMA_HandleTypeDef *huartdma, UART_HandleTypeDef *huart);
+void UARTDMA_Start(UARTDMA_HandleTypeDef *huartdma);
+
+uint32_t UARTDMA_GetLen (UARTDMA_HandleTypeDef* huartdma);
+uint32_t UARTDMA_GetData (UARTDMA_HandleTypeDef *huartdma, uint8_t* outBuf);
+
+#endif

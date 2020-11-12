@@ -60,7 +60,7 @@ typedef enum _nextion_command{
 	NEX_COMMANDS_COUNT
 } nextion_command;
 
-const static char* nextion_commands[NEX_COMMANDS_COUNT] = {
+static const char* nextion_commands[NEX_COMMANDS_COUNT] = {
 	"sleep=0",
 	"sendme",
 	"rtc0=%d",
@@ -139,7 +139,7 @@ static void nextion_SendData(UART_HandleTypeDef* uart, nextion_command cmd, int3
 	char buffor_to_send[40];
 	uint8_t buffor_to_send_size;
 	current_command = cmd;
-	if(cmd < NEX_COMMANDS_COUNT && cmd > -1){
+	if(cmd < NEX_COMMANDS_COUNT){
 		if(cmd == NEX_WAKE || cmd == NEX_SENDME || cmd == NEX_SETTINGS_SAVED || cmd == NEX_SETTINGS_NOT_SAVED
 			|| cmd == NEX_SETTINGS_LOCK || cmd == NEX_SETTINGS_UNLOCK){
 			buffor_to_send_size = sprintf(buffor_to_send, nextion_commands[cmd]);
@@ -193,10 +193,11 @@ static void nextion_SendConfig(UART_HandleTypeDef* uart){
 	nextion_SendData(uart, NEX_HEATER_COEFF, RegulationTaskData.parameters.heater_power_coeff, 0, 0);
 }
 
-void DisplayTask(void const * argument)
+void DisplayTask(void* argument)
 {
   /* USER CODE BEGIN UpdateLCD */
-	uint32_t ulNotificationValue;
+	UNUSED(argument);
+	uint32_t ulNotificationValue = 0;
 	uint32_t param = 0;
 	uint8_t* valPtr = NULL;
 	uint32_t rest;
@@ -222,6 +223,7 @@ void DisplayTask(void const * argument)
 
 	HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
+
 
 	nextion_SendData(NEXTION_SMALL_UART, NEX_WAKE, 0, 0, 0);
 	vTaskDelay(1);
@@ -307,9 +309,27 @@ void DisplayTask(void const * argument)
 				nextion_SendData(NEXTION_BIG_UART, NEX_CO_HEATER_PHASE_DUTY, i + 1, RegulationTaskData.counter.CO_heater_PWM[i], 0);
 				nextion_SendData(NEXTION_BIG_UART, NEX_CWU_HEATER_PHASE_DUTY, i + 1, RegulationTaskData.counter.CWU_heater_PWM[i], 0);
 			}
-
 		}
-		vTaskDelay(1000);
+
+		if(nextion_small.display == 0){
+			nextion_SendData(NEXTION_SMALL_UART, NEX_COUNTER_PRESENCE, RegulationTaskData.counter.counter_present, 0, 0);
+			nextion_SendData(NEXTION_SMALL_UART, NEX_TSENS_PRESENCE, RegulationTaskData.counter.temperatures_present, 0, 0);
+			nextion_SendData(NEXTION_SMALL_UART, NEX_MAIN_SW, RegulationTaskData.ControlWord.MainSwitch_State, 0, 0);
+
+			for(uint8_t i = 0; i < 3; i ++){
+				rest = (uint32_t)(RegulationTaskData.counter.voltages[i] * 10.0) % 10;
+				nextion_SendData(NEXTION_SMALL_UART, NEX_PHASE_VOLTAGE, i + 1, (uint32_t)RegulationTaskData.counter.voltages[i], rest);
+				rest = (uint32_t)(RegulationTaskData.counter.currents[i] * 100.0) % 100;
+				nextion_SendData(NEXTION_SMALL_UART, NEX_PHASE_CURRENT, i + 1, (uint32_t)RegulationTaskData.counter.currents[i], rest);
+				rest = (uint32_t)(RegulationTaskData.counter.powers[i] * 10.0) % 10;
+				nextion_SendData(NEXTION_SMALL_UART, NEX_PHASE_POWER, i + 1, (uint32_t)RegulationTaskData.counter.powers[i], rest);
+				rest = (uint32_t)(RegulationTaskData.counter.powers[i] / RegulationTaskData.parameters.net_max_power * 100.0);
+				nextion_SendData(NEXTION_SMALL_UART, NEX_PHASE_PRG_BAR, i + 1, rest, 0);
+				nextion_SendData(NEXTION_SMALL_UART, NEX_CO_HEATER_PHASE_DUTY, i + 1, RegulationTaskData.counter.CO_heater_PWM[i], 0);
+				nextion_SendData(NEXTION_SMALL_UART, NEX_CWU_HEATER_PHASE_DUTY, i + 1, RegulationTaskData.counter.CWU_heater_PWM[i], 0);
+			}
+		}
+		//vTaskDelay(1000);
 		/*
 		current_command = NEX_CWORD;
 		if(nextion_small.display == 1 && nextion_small.sleep == 0){
@@ -382,7 +402,7 @@ void NextionBig_DataRcv (void){
 					memcpy(&value, &nextion_big_comm.UART_Buffer[start + 5], 4);
 					nextion_big.param = number;
 					memcpy(&nextion_big.value, &value, 4);
-					Config_ChangeValue(number, value);
+					Config_ChangeValue(number, &value);
 					nextion_big_comm.UartBufferHead += 10;
 					xTaskNotifyFromISR(DiplaysHandle, 1, eSetValueWithOverwrite, NULL);
 				}else{

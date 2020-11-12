@@ -78,3 +78,35 @@ uint32_t RuntimeStats_ModbusMasterRespOkGet (void){
 uint32_t RuntimeStats_ModbusMasterWrongRespGet (void){
 	return commStats.mdMAsterStats.wrongRq;
 }
+
+void RuntimeStats_ModbusSlaveRqAllInc (void){
+	commStats.mbSlaveStats.rqAll++;
+}
+
+void RuntimeStats_ModbusSlaveRqOkInc (void){
+	commStats.mbSlaveStats.rqOk++;
+}
+
+void RuntimeStats_ModbusSlaveRqErrInc (void){
+	commStats.mbSlaveStats.rqErr++;
+}
+
+void RuntimeStats_ModbusSlaveRespInc (void){
+	commStats.mbSlaveStats.respSend++;
+}
+
+uint32_t RuntimeStats_ModbusSlaveRqAllGet (void){
+	return commStats.mbSlaveStats.rqAll;
+}
+
+uint32_t RuntimeStats_ModbusSlaveRqOkGet (void){
+	return commStats.mbSlaveStats.rqOk;
+}
+
+uint32_t RuntimeStats_ModbusSlaveRqErrGet (void){
+	return commStats.mbSlaveStats.rqErr;
+}
+
+uint32_t RuntimeStats_ModbusSlaveRespGet (void){
+	return commStats.mbSlaveStats.respSend;
+}

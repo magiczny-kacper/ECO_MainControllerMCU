@@ -107,7 +107,7 @@ int current_sec = 30;
 
 int fsprintf(uint8_t s, const char *format, ...)
 {
-	int i;
+	int i = 0;
 /*
 	char buf[LINELEN];
 	FILE f;

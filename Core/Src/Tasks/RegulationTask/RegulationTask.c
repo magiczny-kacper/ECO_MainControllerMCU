@@ -8,20 +8,26 @@
 #include "RegulationTask.h"
 
 #include "FreeRTOS.h"
+#include "semphr.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
 
-#include "../../Modbus/Modbus.h"
 #include "../../Expander/mcp23017.h"
+#include "../../Modbus/ModbusRTUMaster.h"
 
+/* Extern RTOS handles. */
 extern osThreadId PowerRegulationHandle;
+extern osMutexId ModbusMutexHandle;
 
+/* Extern peripheral handles. */
 extern TIM_HandleTypeDef htim1, htim2, htim3;
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart2;
 
+/* Task specific handles. */
 MCP23017_HandleTypeDef expander1;
 
+/* Static variables */
 static RegTaskData_t regulationData;
 
 #define HIGH 						1
@@ -49,9 +55,9 @@ float fModbusParseFloat (uint8_t* in_data){
 	return buffor.value;
 }
 
-ModbusHandler mbPort;
+ModbusRTUMaster_t mbPort;
 
-void RegulationTask(void const * argument)
+void RegulationTask(void* argument)
 {
   /* USER CODE BEGIN PowerRegulation */
 
@@ -114,8 +120,9 @@ void RegulationTask(void const * argument)
 
 	expander1.gpio[0] = 0;
 	mcp23017_write_gpio(&expander1, 0);
-	vModbusInit(&mbPort, &huart2, 100);
+	ModbusRTUMaster_Init(&mbPort, &huart2, 100);
 
+	xLastWakeTime = xTaskGetTickCount();
 	for(;;){
 
 		mcp23017_read_gpio(&expander1, 0);
@@ -137,8 +144,8 @@ void RegulationTask(void const * argument)
 		}else{
 			regulationData.ControlWord.COHeaterError = LOW;
 		}
-
-		if(vModbusReadInputRegisters(&mbPort, COUNTER_ADDRESS, L1_VOLTAGE, 18, counter_data_raw) == Modbus_OK){
+		xSemaphoreTake(ModbusMutexHandle, portMAX_DELAY);
+		if(ModbusRTUMaster_ReadInputRegisters(&mbPort, COUNTER_ADDRESS, L1_VOLTAGE, 18, counter_data_raw, NULL) == Modbus_OK){
 			receieves += 1;
 			for(uint8_t i = 0; i < 3; i++){
 				regulationData.counter.voltages[i] = fModbusParseFloat(counter_data_raw + i * 4);
@@ -146,8 +153,10 @@ void RegulationTask(void const * argument)
 				regulationData.counter.powers[i] = fModbusParseFloat(counter_data_raw + 24 + 4 * i);
 			}
 		}
-
-		if(vModbusReadInputRegisters(&mbPort, COUNTER_ADDRESS, IMPORTED_ACTIVE_POWER, 4, imported_exported_power_raw) == Modbus_OK){
+		xSemaphoreGive(ModbusMutexHandle);
+		vTaskDelay(1);
+		xSemaphoreTake(ModbusMutexHandle, portMAX_DELAY);
+		if(ModbusRTUMaster_ReadInputRegisters(&mbPort, COUNTER_ADDRESS, IMPORTED_ACTIVE_POWER, 4, imported_exported_power_raw, NULL) == Modbus_OK){
 			receieves += 2;
 			last_exported_power = exported_power;
 			last_imported_power = imported_power;
@@ -161,8 +170,10 @@ void RegulationTask(void const * argument)
 			}
 			regulationData.counter.power_in_buffor += (exported_power - last_exported_power) * ACUMULATED_POWER_FACTOR;
 		}
-
-		if(vModbusReadInputRegisters(&mbPort, TEMPERATURE_ADDRESS, 0, SENSOR_NUMBER, temperatures_raw) == Modbus_OK){
+		xSemaphoreGive(ModbusMutexHandle);
+		vTaskDelay(1);
+		xSemaphoreTake(ModbusMutexHandle, portMAX_DELAY);
+		if(ModbusRTUMaster_ReadInputRegisters(&mbPort, TEMPERATURE_ADDRESS, 0, SENSOR_NUMBER, temperatures_raw, NULL) == Modbus_OK){
 			receieves += 4;
 			for(uint8_t i = 0; i < SENSOR_NUMBER; i++){
 				int16_t temp = temperatures_raw[i * 2];
@@ -172,7 +183,8 @@ void RegulationTask(void const * argument)
 			}
 			memcpy(&regulationData.counter.CWU_temps[0], &temperatures[0], 24);
 		}
-
+		xSemaphoreGive(ModbusMutexHandle);
+		vTaskDelay(1);
 		regulationData.counter.counter_present = 1;
 		regulationData.counter.temperatures_present = 1;
 		if(receieves == 7){
@@ -287,8 +299,8 @@ void RegulationTask(void const * argument)
 
 		expander1.gpio[MCP23017_PORTA] = regulationData.IOsignals.ports.portA;
 		mcp23017_write_gpio(&expander1, 0);
-		//vTaskDelayUntil(&xLastWakeTime, xDelay);
-		vTaskDelay(1000);
+		vTaskDelayUntil(&xLastWakeTime, xDelay);
+		//vTaskDelay(1000);
 	}
   /* USER CODE END PowerRegulation */
 }

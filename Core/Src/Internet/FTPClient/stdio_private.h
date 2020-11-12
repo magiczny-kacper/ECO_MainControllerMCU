@@ -36,6 +36,9 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
+#ifndef stdio_private_h
+#define stdio_private_h
+
 struct __file {
 	char	*buf;		/* buffer pointer */
 	unsigned char unget;	/* ungetc() buffer */
@@ -69,6 +72,8 @@ struct __file {
 #define SCANF_MIN 1
 #define SCANF_STD 2
 #define SCANF_FLT 3
+
+#endif
 
 #ifdef __cplusplus
 }

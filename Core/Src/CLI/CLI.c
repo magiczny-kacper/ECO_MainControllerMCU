@@ -23,98 +23,98 @@ extern RTC_HandleTypeDef hrtc;
 static const CLI_Command_Definition_t xEreaseEECmd = {
 	"erease_eeprom",
 	"erease_eeprom:\r\n    Ereases EEPROM memory.\r\n",
-	xCLI_EreaseEE,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_EreaseEE,
 	0
 };
 
 static const CLI_Command_Definition_t xShowConfigCmd = {
 	"show_config",
 	"show_config:\r\n    Shows configuration.\r\n",
-	xCLI_ShowConfig,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_ShowConfig,
 	0
 };
 
 static const CLI_Command_Definition_t xGetSysStatusCmd = {
 	"get_system_status",
 	"get_system_status:\r\n    Shows general system status, date, time, uptime.\r\n",
-	xCLI_GetSystemStatus,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_GetSystemStatus,
 	0
 };
 
 static const CLI_Command_Definition_t xGetRtosStatsCmd = {
 	"get_rtos_stats",
 	"get_rtos_stats:\r\n    Shows RTOS runtime statistics.\r\n",
-	xCLI_GetRtosStats,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_GetRtosStats,
 	0
 };
 
 static const CLI_Command_Definition_t xGetCommStatsCmd = {
 	"get_comm_stats",
 	"get_comm_stats:\r\n    Shows communication statistics.\r\n",
-	xCLI_GetCommStats,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_GetCommStats,
 	0
 };
 
 static const CLI_Command_Definition_t xWriteTestEventCmd = {
 	"write_test_event",
 	"write_test_event:\r\n    Writes test event into flash memory.\r\n",
-	xCLI_WriteTestEvent,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_WriteTestEvent,
 	0
 };
 
 static const CLI_Command_Definition_t xEreaseFlashCmd = {
 	"erease_flash",
 	"erease_flash:\r\n    Ereases flash memory.\r\n",
-	xCLI_EreaseFlash,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_EreaseFlash,
 	0
 };
 
 static const CLI_Command_Definition_t xResetCmd = {
 	"reset",
 	"reset:\r\n    MCU software reset.\r\n",
-	xCLI_Reset,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_Reset,
 	0
 };
 
 static const CLI_Command_Definition_t xGetIOCmd = {
 	"get_io",
 	"get_io:\r\n    Shows input and outputs state.\r\n",
-	xCLI_ShowIO,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_ShowIO,
 	0
 };
 
 static const CLI_Command_Definition_t xGetLastEventCmd = {
 	"get_last_event",
 	"get_last_event:\r\n    Reads last saved event from memory.\r\n",
-	xCLI_GetLastEvent,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_GetLastEvent,
 	0
 };
 
 static const CLI_Command_Definition_t xGetLastEventsCmd = {
 	"get_events",
 	"get_events x:\r\n    Reads last x saved event from memory.\r\n",
-	xCLI_GetEvents,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_GetEvents,
 	1
 };
 
 static const CLI_Command_Definition_t xGetLastEventsRawCmd = {
 	"get_events_raw",
 	"get_events_raw x:\r\n    Reads last x saved event from memory.\r\n",
-	xCLI_GetEventsRaw,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_GetEventsRaw,
 	1
 };
 
 static const CLI_Command_Definition_t xSetTimeCmd = {
 	"set_time",
 	"set_time hh mm ss:\r\n    Sets time.\r\n",
-	xCLI_SetTime,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_SetTime,
 	3
 };
 
 static const CLI_Command_Definition_t xSetDateCmd = {
 	"set_date",
 	"set_date dd mm yy:\r\n    Sets date.\r\n",
-	xCLI_SetDate,
+	(const pdCOMMAND_LINE_CALLBACK) xCLI_SetDate,
 	3
 };
 
@@ -135,12 +135,12 @@ void CLI_Init (void){
 	FreeRTOS_CLIRegisterCommand(&xResetCmd);
 }
 
-BaseType_t xCLI_EreaseEE( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_EreaseEE( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 	EE_StatusTypeDef retval = EE_Erease();
 	if(retval == EE_OK){
-		DataLog_LogEvent(EV_EE_CLR);
+		DataLog_LogEvent(EV_EE_CLR, NULL, 0);
 		sprintf(pcWriteBuffer, "Wyczyszczono.\r\n");
 	}else{
 		sprintf(pcWriteBuffer, "Nie wyczyszczono.\r\n");
@@ -148,7 +148,7 @@ BaseType_t xCLI_EreaseEE( char *pcWriteBuffer, size_t xWriteBufferLen, const int
 	return pdFALSE;
 }
 
-BaseType_t xCLI_ShowConfig( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_ShowConfig( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 
@@ -206,9 +206,9 @@ BaseType_t xCLI_ShowConfig( char *pcWriteBuffer, size_t xWriteBufferLen, const i
 					"    CWU heater power: %d W\r\n"
 					"    CO heater power: %d W\r\n"
 					"    Network max power: %d W\r\n",
-					(uint32_t)config.RegulationConfig.CWU_heater_power,
-					(uint32_t)config.RegulationConfig.CO_heater_power,
-					(uint32_t)config.RegulationConfig.net_max_power);
+					(int)config.RegulationConfig.CWU_heater_power,
+					(int)config.RegulationConfig.CO_heater_power,
+					(int)config.RegulationConfig.net_max_power);
 			step++;
 			break;
 
@@ -217,10 +217,10 @@ BaseType_t xCLI_ShowConfig( char *pcWriteBuffer, size_t xWriteBufferLen, const i
 					"    Temperature address: %d\r\n"
 					"    Accumulated power coefficient: %d %\r\n"
 					"    Heater power coefficient: %d %\r\n",
-					config.RegulationConfig.counter_address,
-					config.RegulationConfig.temperature_address,
-					config.RegulationConfig.acumulated_power_coeff,
-					config.RegulationConfig.heater_power_coeff);
+					(int)config.RegulationConfig.counter_address,
+					(int)config.RegulationConfig.temperature_address,
+					(int)config.RegulationConfig.acumulated_power_coeff,
+					(int)config.RegulationConfig.heater_power_coeff);
 			step++;
 			break;
 
@@ -252,7 +252,7 @@ BaseType_t xCLI_ShowConfig( char *pcWriteBuffer, size_t xWriteBufferLen, const i
 	return retVal;
 }
 
-BaseType_t xCLI_GetSystemStatus( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_GetSystemStatus( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 
@@ -267,14 +267,14 @@ BaseType_t xCLI_GetSystemStatus( char *pcWriteBuffer, size_t xWriteBufferLen, co
 	return pdFALSE;
 }
 
-BaseType_t xCLI_GetRtosStats( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_GetRtosStats( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 	vTaskGetRunTimeStats(pcWriteBuffer);
 	return pdFALSE;
 }
 
-BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 
@@ -307,7 +307,7 @@ BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const
 			break;
 
 		case 3:
-			sprintf(pcWriteBuffer, "Modbus statistics:\r\n"
+			sprintf(pcWriteBuffer, "Modbus RTU Master statistics:\r\n"
 					"    Requests send: %d\r\n"
 					"    Responses received: %d\r\n"
 					"    Requests not responded: %d\r\n"
@@ -316,6 +316,17 @@ BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const
 					RuntimeStats_ModbusMasterNoRespGet(), RuntimeStats_ModbusMasterWrongRespGet());
 			step++;
 			break;
+
+		case 4:
+			sprintf(pcWriteBuffer, "Modbus TCP Server statistics:\r\n"
+					"    Requests received: %d\r\n"
+					"    Proper requests received: %d\r\n"
+					"    Wrong requests received: %d\r\n"
+					"    Responds sent: %d\r\n",
+					RuntimeStats_ModbusSlaveRqAllGet(), RuntimeStats_ModbusSlaveRqOkGet(),
+					RuntimeStats_ModbusSlaveRqErrGet(), RuntimeStats_ModbusSlaveRespGet());
+					step++;
+					break;
 
 		default:
 			step = 0;
@@ -326,15 +337,15 @@ BaseType_t xCLI_GetCommStats( char *pcWriteBuffer, size_t xWriteBufferLen, const
 	return retVal;
 }
 
-BaseType_t xCLI_WriteTestEvent( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_WriteTestEvent( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
-	DataLog_LogEvent(EV_TEST);
+	DataLog_LogEvent(EV_TEST, NULL, 0);
 	sprintf(pcWriteBuffer, "    Done.\r\n    Current pointer: %d\r\n", DataLog_GetCurrentMemPointer());
 	return pdFALSE;
 }
 
-BaseType_t xCLI_EreaseFlash( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_EreaseFlash( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 
@@ -344,11 +355,15 @@ BaseType_t xCLI_EreaseFlash( char *pcWriteBuffer, size_t xWriteBufferLen, const 
 	return pdFALSE;
 }
 
-BaseType_t xCLI_Reset( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_Reset( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
+	(void) pcCommandString;
+	(void) xWriteBufferLen;
+	(void) pcWriteBuffer;
 	HAL_NVIC_SystemReset();
+	return pdFALSE;
 }
 
-BaseType_t xCLI_ShowIO( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_ShowIO( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 	RegTaskData_t* ptr;
@@ -377,7 +392,7 @@ BaseType_t xCLI_ShowIO( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_
 	return pdFALSE;
 }
 
-BaseType_t xCLI_GetLastEvent( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
+BaseType_t xCLI_GetLastEvent( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
 	(void) pcCommandString;
 	(void) xWriteBufferLen;
 
@@ -390,8 +405,10 @@ BaseType_t xCLI_GetLastEvent( char *pcWriteBuffer, size_t xWriteBufferLen, const
 	return pdFALSE;
 }
 
-BaseType_t xCLI_GetEvents( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
-	int8_t* parameter, len;
+BaseType_t xCLI_GetEvents( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
+	xWriteBufferLen = xWriteBufferLen;
+	char* parameter;
+	int8_t len;
 	uint32_t mul = 1;
 	static uint32_t par = 0;
 	static uint8_t step = 0;
@@ -401,16 +418,16 @@ BaseType_t xCLI_GetEvents( char *pcWriteBuffer, size_t xWriteBufferLen, const in
 
 	switch (step){
 		case 0:
-			parameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &len);
+			parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 1, (BaseType_t*)&len);
 			for(uint8_t i = len; i > 0; i--){
 				par += (*(parameter + i - 1) - '0') * mul;
 				mul *= 10;
 			}
 			if(par > DataLog_GetSavedEventsCnt()){
 				par = DataLog_GetSavedEventsCnt();
-				sprintf(pcWriteBuffer, "Only %d events to read...\r\n", par);
+				sprintf(pcWriteBuffer, "Only %d events to read...\r\n", (int)par);
 			}else{
-				sprintf(pcWriteBuffer, "Reading %d events...\r\n", par);
+				sprintf(pcWriteBuffer, "Reading %d events...\r\n", (int)par);
 			}
 			step++;
 			break;
@@ -439,8 +456,10 @@ BaseType_t xCLI_GetEvents( char *pcWriteBuffer, size_t xWriteBufferLen, const in
 	return retVal;
 }
 
-BaseType_t xCLI_GetEventsRaw( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
-	int8_t* parameter, len;
+BaseType_t xCLI_GetEventsRaw( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
+	xWriteBufferLen = xWriteBufferLen;
+	char* parameter;
+	int8_t len;
 	uint32_t mul = 1;
 	static uint32_t par = 0;
 	static uint8_t step = 0;
@@ -450,16 +469,16 @@ BaseType_t xCLI_GetEventsRaw( char *pcWriteBuffer, size_t xWriteBufferLen, const
 
 	switch (step){
 		case 0:
-			parameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &len);
+			parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 1, (BaseType_t*)&len);
 			for(uint8_t i = len; i > 0; i--){
 				par += (*(parameter + i - 1) - '0') * mul;
 				mul *= 10;
 			}
 			if(par > DataLog_GetSavedEventsCnt()){
 				par = DataLog_GetSavedEventsCnt();
-				sprintf(pcWriteBuffer, "Only %d events to read...\r\n", par);
+				sprintf(pcWriteBuffer, "Only %d events to read...\r\n", (int)par);
 			}else{
-				sprintf(pcWriteBuffer, "Reading %d events...\r\n", par);
+				sprintf(pcWriteBuffer, "Reading %d events...\r\n", (int)par);
 			}
 			step++;
 			break;
@@ -492,18 +511,20 @@ BaseType_t xCLI_GetEventsRaw( char *pcWriteBuffer, size_t xWriteBufferLen, const
 	return retVal;
 }
 
-BaseType_t xCLI_SetTime( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
-	int8_t* parameter, len;
+BaseType_t xCLI_SetTime( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
+	xWriteBufferLen = xWriteBufferLen;
+	char* parameter;
+	uint8_t len;
 	RTC_TimeTypeDef time;
 	uint8_t hour, minute, second;
 
-	parameter = FreeRTOS_CLIGetParameter((char*)pcCommandString, 1, &len);
+	parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 1, (BaseType_t*)&len);
 	hour = (*parameter - '0') * 10 + (*(parameter + 1) - '0');
 
-	parameter = FreeRTOS_CLIGetParameter((char*)pcCommandString, 2, &len);
+	parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 2, (BaseType_t*)&len);
 	minute = (*parameter - '0') * 10 + (*(parameter + 1) - '0');
 
-	parameter = FreeRTOS_CLIGetParameter((char*)pcCommandString, 3, &len);
+	parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 3, (BaseType_t*)&len);
 	second = (*parameter - '0') * 10 + (*(parameter + 1) - '0');
 
 	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
@@ -512,24 +533,26 @@ BaseType_t xCLI_SetTime( char *pcWriteBuffer, size_t xWriteBufferLen, const int8
 	time.Seconds = second;
 
 	HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-	DataLog_LogEvent(EV_RTC_UPDATE);
+	DataLog_LogEvent(EV_RTC_UPDATE, NULL, 0);
 	sprintf(pcWriteBuffer, "    Time changed.\r\n");
 	return pdFALSE;
 }
 
-BaseType_t xCLI_SetDate( char *pcWriteBuffer, size_t xWriteBufferLen, const int8_t *pcCommandString ){
-	int8_t* parameter, len;
+BaseType_t xCLI_SetDate( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCommandString ){
+	xWriteBufferLen = xWriteBufferLen;
+	char* parameter;
+	uint8_t len;
 	RTC_TimeTypeDef time;
 	RTC_DateTypeDef date;
 	uint8_t day, month, year;
 
-	parameter = FreeRTOS_CLIGetParameter((char*)pcCommandString, 1, &len);
+	parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 1, (BaseType_t*)&len);
 	day = (*parameter - '0') * 10 + (*(parameter + 1) - '0');
 
-	parameter = FreeRTOS_CLIGetParameter((char*)pcCommandString, 2, &len);
+	parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 2, (BaseType_t*)&len);
 	month = (*parameter - '0') * 10 + (*(parameter + 1) - '0');
 
-	parameter = FreeRTOS_CLIGetParameter((char*)pcCommandString, 3, &len);
+	parameter = (char*)FreeRTOS_CLIGetParameter(pcCommandString, 3, (BaseType_t*)&len);
 	year = (*parameter - '0') * 10 + (*(parameter + 1) - '0');
 
 	HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
@@ -539,7 +562,7 @@ BaseType_t xCLI_SetDate( char *pcWriteBuffer, size_t xWriteBufferLen, const int8
 	date.Year = year;
 
 	HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
-	DataLog_LogEvent(EV_RTC_UPDATE);
+	DataLog_LogEvent(EV_RTC_UPDATE, NULL, 0);
 	sprintf(pcWriteBuffer, "    Date changed.\r\n");
 	return pdFALSE;
 }

@@ -16,6 +16,6 @@ void FLASH_ChipSelect(void);
 
 void FLASH_ChipDeselect(void);
 
-void DataLogTask(void const * argument);
+void DataLogTask(void* argument);
 
 #endif /* SRC_TASKS_DATALOGTASK_DATALOGTASK_H_ */

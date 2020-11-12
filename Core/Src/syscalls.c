@@ -156,6 +156,7 @@ int _unlink(char *name)
 
 int _times(struct tms *buf)
 {
+	UNUSED(buf);
 	return -1;
 }
 
