@@ -60,6 +60,11 @@ endif
 
 -include ../makefile.defs
 
+BUILD_ARTIFACT_NAME := Suncontroller CPU
+BUILD_ARTIFACT_EXTENSION := elf
+BUILD_ARTIFACT_PREFIX := 
+BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME).$(BUILD_ARTIFACT_EXTENSION)
+
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
 Suncontroller\ CPU.elf \
@@ -75,11 +80,14 @@ Suncontroller\ CPU.bin \
 
 
 # All Target
-all: Suncontroller\ CPU.elf secondary-outputs
+all: main-build
+
+# Main-build Target
+main-build: Suncontroller\ CPU.elf secondary-outputs
 
 # Tool invocations
-Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) /mnt/Data/Projekty/Suncontroller/Suncontroller\ software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld
-	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/mnt/Data/Projekty/Suncontroller/Suncontroller software/ECO_MainControllerMCU/STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -Wl,--verbose -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) D:\Projekty\Elektronika\ i\ Oprogramowanie\Suncontroller\Suncontroller\ software\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld
+	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\Projekty\Elektronika i Oprogramowanie\Suncontroller\Suncontroller software\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -Wl,--verbose -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -105,7 +113,14 @@ clean:
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
 
-.PHONY: all clean dependents
+fail-specified-linker-script-missing:
+	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
+	@exit 2
+
+warn-no-linker-script-specified:
+	@echo 'Warning: No linker script specified. Check the linker settings in the build configuration.'
+
+.PHONY: all clean dependents fail-specified-linker-script-missing warn-no-linker-script-specified
 .SECONDARY:
 
 -include ../makefile.targets

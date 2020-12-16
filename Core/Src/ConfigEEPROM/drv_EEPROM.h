@@ -28,9 +28,9 @@ typedef enum{
 
 EE_StatusTypeDef EE_Init (I2C_HandleTypeDef* hi2c);
 
-EE_StatusTypeDef EE_Read (void* data, uint8_t addr, uint32_t len);
+EE_StatusTypeDef EE_Read (void* data, uint8_t addr, size_t len);
 
-EE_StatusTypeDef EE_Write (void* data, uint32_t addr, uint32_t len);
+EE_StatusTypeDef EE_Write (void* data, uint32_t addr, size_t len);
 
 EE_StatusTypeDef EE_Erease (void);
 
