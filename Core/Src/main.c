@@ -186,9 +186,7 @@ void ModifyEEPROMStruct (uint32_t data, int32_t value);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-
-{
+int main(void){
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
