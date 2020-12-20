@@ -5,7 +5,6 @@
  *      Author: Kacper
  */
 
-#include <string.h>
 #include "config.h"
 #include "drv_EEPROM.h"
 

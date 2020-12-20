@@ -43,7 +43,14 @@ MEMORY
   BACKUP_FLASH  (rx)    : ORIGIN = 0x8020000,   LENGTH = 112K
 }
 
-
+__boot_flash_start__ = ORIGIN(BOOT_FLASH);
+__boot_flash_end__ = ORIGIN(BOOT_FLASH) + LENGTH(BOOT_FLASH);
+__app_flash_start__ = ORIGIN(APP_FLASH);
+__app_flash_end__ = ORIGIN(APP_FLASH) + LENGTH(APP_FLASH);
+__backup_flash_start__ = ORIGIN(BACKUP_FLASH);
+__backup_flash_end__ = ORIGIN(BACKUP_FLASH) + LENGTH(BACKUP_FLASH);
+__ram_start__ = ORIGIN(RAM);
+__ram_end__ = ORIGIN(RAM) + LENGTH(RAM);
 
 /* Sections */
 SECTIONS

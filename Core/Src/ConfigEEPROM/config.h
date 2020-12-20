@@ -8,6 +8,8 @@
 #ifndef SRC_CONFIGEEPROM_CONFIG_H_
 #define SRC_CONFIGEEPROM_CONFIG_H_
 
+#include <string.h>
+#include <stdint.h>
 #include "stm32f4xx_hal.h"
 
 
