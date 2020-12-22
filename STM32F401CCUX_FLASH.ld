@@ -64,7 +64,7 @@ SECTIONS
     . = ALIGN(4);
   } >APP_FLASH
 
-  /* The program code and other data into "FLASH" Rom type memory */
+  /* The program code and other data into "APP_FLASH" Rom type memory */
   .text :
   {
     . = ALIGN(4);
@@ -81,21 +81,6 @@ SECTIONS
     _etext = .;        /* define a global symbols at end of code */
   } >APP_FLASH
 	
-	.boot_text :
-  {
-    . = ALIGN(4);
-    *(.boot_text)           /* .text sections (code) */
-    *(.boot_text*)          /* .text* sections (code) */
-    *(.glue_7)         /* glue arm to thumb code */
-    *(.glue_7t)        /* glue thumb to arm code */
-    *(.eh_frame)
-
-    KEEP (*(.boot_init))
-    KEEP (*(.boot_fini))
-
-    . = ALIGN(4);
-    _boot_etext = .;        /* define a global symbols at end of code */
-  } >BOOT_FLASH
   /* Constant data into "APP_FLASH" Rom type memory */
   .rodata :
   {
