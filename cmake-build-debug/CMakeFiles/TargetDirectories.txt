@@ -1,0 +1,4 @@
+D:/Projekty/ElektronikaiOprogramowanie/Suncontroller/SuncontrollerSoftware/ECO_MainControllerMCU/cmake-build-debug/CMakeFiles/SuncontrollerCPU_app.dir
+D:/Projekty/ElektronikaiOprogramowanie/Suncontroller/SuncontrollerSoftware/ECO_MainControllerMCU/cmake-build-debug/CMakeFiles/SuncontrollerCPU_boot.dir
+D:/Projekty/ElektronikaiOprogramowanie/Suncontroller/SuncontrollerSoftware/ECO_MainControllerMCU/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Projekty/ElektronikaiOprogramowanie/Suncontroller/SuncontrollerSoftware/ECO_MainControllerMCU/cmake-build-debug/CMakeFiles/rebuild_cache.dir

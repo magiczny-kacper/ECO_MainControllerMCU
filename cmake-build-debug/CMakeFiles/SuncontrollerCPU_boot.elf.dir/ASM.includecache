@@ -1,0 +1,10 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/Projekty/ElektronikaiOprogramowanie/Suncontroller/SuncontrollerSoftware/ECO_MainControllerMCU/Core/Startup/startup_stm32f401ccux.s
+
