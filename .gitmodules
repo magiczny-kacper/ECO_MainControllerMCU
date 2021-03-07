@@ -1,0 +1,6 @@
+[submodule "Middlewares/Third_Party/printf"]
+	path = Middlewares/Third_Party/printf
+	url = https://github.com/mpaland/printf.git
+[submodule "Core/Src/Flash"]
+	path = Core/Src/DeviceDrivers/Flash
+	url = https://github.com/nimaltd/w25qxx.git
