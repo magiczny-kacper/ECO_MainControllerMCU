@@ -24,7 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "UART_DMA.h"
-#include "Modbus/ModbusRTUMaster.h"
+#include "Utils/Modbus/ModbusRTUMaster.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

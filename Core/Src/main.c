@@ -25,14 +25,14 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "Tasks/RegulationTask/RegulationTask.h"
-#include "Tasks/DisplayTask/DisplayTask.h"
-#include "Tasks/DataLogTask/DataLogTask.h"
-#include "Tasks/EthernetTask/EthernetTask.h"
-#include "Tasks/RadioTask/RadioTask.h"
-#include "ConfigEEPROM/config.h"
-#include "Flash/dataLog.h"
-#include "Modbus/ModbusRTUMaster.h"
+#include "Application/Tasks/RegulationTask/RegulationTask.h"
+#include "Application/Tasks/DisplayTask/DisplayTask.h"
+#include "Application/Tasks/DataLogTask/DataLogTask.h"
+#include "Application/Tasks/EthernetTask/EthernetTask.h"
+#include "Application/Tasks/RadioTask/RadioTask.h"
+#include "Utils/Config/config.h"
+#include "Utils/DataLog/dataLog.h"
+#include "Utils/Modbus/ModbusRTUMaster.h"
 
 #include "Internet/DNS/dns.h"
 /* USER CODE END Includes */

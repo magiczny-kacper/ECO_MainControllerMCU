@@ -4,3 +4,9 @@
 [submodule "Core/Src/Flash"]
 	path = Core/Src/DeviceDrivers/Flash
 	url = https://github.com/nimaltd/w25qxx.git
+[submodule "Core/Src/DeviceDrivers/Expander"]
+	path = Core/Src/DeviceDrivers/Expander
+	url = https://github.com/ruda/mcp23017.git
+[submodule "Core/Src/Utils/RingBuffer"]
+	path = Core/Src/Utils/RingBuffer
+	url = https://github.com/magiczny-kacper/RingBuffer.git

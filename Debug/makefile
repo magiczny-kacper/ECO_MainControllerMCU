@@ -16,15 +16,13 @@ RM := rm -rf
 -include Middlewares/Third_Party/FreeRTOS/Source/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
--include Core/Src/nRF24/subdir.mk
--include Core/Src/Tasks/RegulationTask/subdir.mk
--include Core/Src/Tasks/RadioTask/subdir.mk
--include Core/Src/Tasks/EthernetTask/subdir.mk
--include Core/Src/Tasks/DisplayTask/subdir.mk
--include Core/Src/Tasks/DataLogTask/subdir.mk
--include Core/Src/RuntimeStats/subdir.mk
--include Core/Src/RingBuffer/subdir.mk
--include Core/Src/Modbus/subdir.mk
+-include Core/Src/Utils/RuntimeStats/subdir.mk
+-include Core/Src/Utils/RingBuffer/unity/fixture/subdir.mk
+-include Core/Src/Utils/RingBuffer/unity/core/subdir.mk
+-include Core/Src/Utils/RingBuffer/Src/subdir.mk
+-include Core/Src/Utils/Modbus/subdir.mk
+-include Core/Src/Utils/DataLog/subdir.mk
+-include Core/Src/Utils/Config/subdir.mk
 -include Core/Src/Internet/httpServer/subdir.mk
 -include Core/Src/Internet/TFTP/subdir.mk
 -include Core/Src/Internet/SNTP/subdir.mk
@@ -35,13 +33,21 @@ RM := rm -rf
 -include Core/Src/Internet/FTPClient/subdir.mk
 -include Core/Src/Internet/DNS/subdir.mk
 -include Core/Src/Internet/DHCP/subdir.mk
--include Core/Src/Flash/subdir.mk
--include Core/Src/Expander/subdir.mk
 -include Core/Src/Ethernet/W5500/subdir.mk
 -include Core/Src/Ethernet/subdir.mk
--include Core/Src/ConfigEEPROM/subdir.mk
--include Core/Src/CLI/subdir.mk
--include Core/Src/AnalogOut/subdir.mk
+-include Core/Src/DeviceDrivers/TemperatureSensors/subdir.mk
+-include Core/Src/DeviceDrivers/Nextion/subdir.mk
+-include Core/Src/DeviceDrivers/Flash/subdir.mk
+-include Core/Src/DeviceDrivers/Expander/src/subdir.mk
+-include Core/Src/DeviceDrivers/EnergyMeter/subdir.mk
+-include Core/Src/DeviceDrivers/EEPROM/subdir.mk
+-include Core/Src/DeviceDrivers/AnalogOut/subdir.mk
+-include Core/Src/Application/Tasks/RegulationTask/subdir.mk
+-include Core/Src/Application/Tasks/RadioTask/subdir.mk
+-include Core/Src/Application/Tasks/EthernetTask/subdir.mk
+-include Core/Src/Application/Tasks/DisplayTask/subdir.mk
+-include Core/Src/Application/Tasks/DataLogTask/subdir.mk
+-include Core/Src/Application/CLI/subdir.mk
 -include Core/Src/subdir.mk
 -include subdir.mk
 -include objects.mk
@@ -86,8 +92,8 @@ all: main-build
 main-build: Suncontroller\ CPU.elf secondary-outputs
 
 # Tool invocations
-Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) D:\Projekty\Elektronika\ i\ Oprogramowanie\Suncontroller\Suncontroller\ software\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld
-	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\Projekty\Elektronika i Oprogramowanie\Suncontroller\Suncontroller software\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -Wl,--verbose -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Suncontroller\ CPU.elf: $(OBJS) $(USER_OBJS) D:\Projekty\ElektronikaiOprogramowanie\Suncontroller\SuncontrollerSoftware\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld
+	arm-none-eabi-gcc -o "Suncontroller CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\Projekty\ElektronikaiOprogramowanie\Suncontroller\SuncontrollerSoftware\ECO_MainControllerMCU\STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Suncontroller CPU.map" -Wl,--gc-sections -Wl,--verbose -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

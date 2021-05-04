@@ -13,6 +13,7 @@
 #include "UART_DMA.h"
 #include <string.h>
 
+
 uint8_t UARTDMA_UartIrqHandler(UARTDMA_HandleTypeDef *huartdma)
 {
 	if(huartdma->huart->Instance->SR & UART_FLAG_IDLE)       // Check if Idle flag is set
@@ -52,11 +53,7 @@ void UARTDMA_DmaIrqHandler(UARTDMA_HandleTypeDef *huartdma){
 		huartdma->length += Length;
 		//huartdma->length = Length;
 
-		for(i = 0; i < Length; i++){
-			huartdma->UART_Buffer[huartdma->UartBufferTail] = huartdma->DMA_RX_Buffer[i];
-			huartdma->UartBufferTail++;
-			huartdma->UartBufferTail &= 127;
-		}
+		RingWriteMultipleBytes(&huartdma->rbuff, huartdma->DMA_RX_Buffer, Length);
 
 		if(huartdma->callback != NULL){
 			huartdma -> callback(huartdma -> callbackArgs);
@@ -75,6 +72,7 @@ void UARTDMA_Init(UARTDMA_HandleTypeDef *huartdma, UART_HandleTypeDef *huart)
 	huartdma->huart = huart;
 	huartdma->callback = NULL;
 	huartdma->callbackArgs = NULL;
+	RingInit(&huartdma->rbuff, huartdma->UART_Buffer, UART_BUFFER_SIZE);
 	__HAL_UART_ENABLE_IT(huartdma->huart, UART_IT_IDLE);   	// UART Idle Line interrupt
 	__HAL_DMA_ENABLE_IT(huartdma->huart->hdmarx, DMA_IT_TC); // UART DMA Transfer Complete interrupt
 
@@ -93,29 +91,8 @@ uint32_t UARTDMA_GetLen (UARTDMA_HandleTypeDef* huartdma){
 }
 
 uint32_t UARTDMA_GetData (UARTDMA_HandleTypeDef *huartdma, uint8_t* outBuf){
-	uint32_t retval = 0;
-	uint32_t temp1, temp2;
-	uint32_t tempTail, tempHead, tempLen;
-
-	tempTail = huartdma -> UartBufferTail;
-	tempHead = huartdma -> UartBufferHead;
-	tempLen = huartdma -> length;
-
-	if(tempTail != tempHead){
-		if(tempHead + tempLen > 128){
-			temp1 = 128 - tempTail;
-			temp2 = tempLen - temp1;
-			memcpy(outBuf, &huartdma -> UART_Buffer[tempHead], temp1);
-			memcpy(outBuf + temp1, &huartdma -> UART_Buffer[0], temp2);
-		}else{
-			memcpy(outBuf, &huartdma -> UART_Buffer[tempHead], tempLen);
-
-		}
-		tempHead = tempTail;
-		huartdma -> UartBufferHead = 0;
-		huartdma -> UartBufferTail = 0;
-		huartdma -> length = 0;
-		retval = tempLen;
-	}
-	return retval;
+	uint32_t tempLen;
+	tempLen = RingGetDataCnt(&huartdma->rbuff);
+	RingReadMultipleBytes(&huartdma->rbuff, outBuf, tempLen);
+	return tempLen;
 }

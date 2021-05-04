@@ -13,6 +13,7 @@
 #define UARTDMA_H
 
 #include "stm32f4xx_hal.h"
+#include "../Utils/RingBuffer/Src/ring.h"
 
 #define DMA_RX_BUFFER_SIZE          128
 #define UART_BUFFER_SIZE           	128
@@ -24,9 +25,7 @@ typedef struct __attribute__ ((packed))
 	uint8_t DMA_RX_Buffer[DMA_RX_BUFFER_SIZE];	// DMA direct buffer
 	uint8_t UART_Buffer[UART_BUFFER_SIZE];		// UART working circular buffer
 	uint8_t length;
-	uint16_t UartBufferHead;
-	uint16_t UartBufferTail;
-	uint8_t  UartBufferLines;
+	RingBuffer_t rbuff;
 	void (*callback)();
 	void* callbackArgs;
 }UARTDMA_HandleTypeDef;

@@ -19,13 +19,21 @@ OBJCOPY_BIN :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-Core/Src/AnalogOut \
-Core/Src/CLI \
-Core/Src/ConfigEEPROM \
+Core/Src/Application/CLI \
+Core/Src/Application/Tasks/DataLogTask \
+Core/Src/Application/Tasks/DisplayTask \
+Core/Src/Application/Tasks/EthernetTask \
+Core/Src/Application/Tasks/RadioTask \
+Core/Src/Application/Tasks/RegulationTask \
+Core/Src/DeviceDrivers/AnalogOut \
+Core/Src/DeviceDrivers/EEPROM \
+Core/Src/DeviceDrivers/EnergyMeter \
+Core/Src/DeviceDrivers/Expander/src \
+Core/Src/DeviceDrivers/Flash \
+Core/Src/DeviceDrivers/Nextion \
+Core/Src/DeviceDrivers/TemperatureSensors \
 Core/Src/Ethernet/W5500 \
 Core/Src/Ethernet \
-Core/Src/Expander \
-Core/Src/Flash \
 Core/Src/Internet/DHCP \
 Core/Src/Internet/DNS \
 Core/Src/Internet/FTPClient \
@@ -36,16 +44,14 @@ Core/Src/Internet/SNMP \
 Core/Src/Internet/SNTP \
 Core/Src/Internet/TFTP \
 Core/Src/Internet/httpServer \
-Core/Src/Modbus \
-Core/Src/RingBuffer \
-Core/Src/RuntimeStats \
-Core/Src/Tasks/DataLogTask \
-Core/Src/Tasks/DisplayTask \
-Core/Src/Tasks/EthernetTask \
-Core/Src/Tasks/RadioTask \
-Core/Src/Tasks/RegulationTask \
 Core/Src \
-Core/Src/nRF24 \
+Core/Src/Utils/Config \
+Core/Src/Utils/DataLog \
+Core/Src/Utils/Modbus \
+Core/Src/Utils/RingBuffer/Src \
+Core/Src/Utils/RingBuffer/unity/core \
+Core/Src/Utils/RingBuffer/unity/fixture \
+Core/Src/Utils/RuntimeStats \
 Core/Startup \
 Drivers/STM32F4xx_HAL_Driver/Src \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \
