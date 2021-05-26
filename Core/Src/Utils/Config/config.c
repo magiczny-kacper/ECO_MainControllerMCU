@@ -5,6 +5,9 @@
  *      Author: Kacper
  */
 
+/**
+ * @addtogroup config
+ */
 #include <string.h>
 #include "config.h"
 #include "../../DeviceDrivers/EEPROM/drv_EEPROM.h"
@@ -248,3 +251,7 @@ ConfigStatus_t Config_Copy (ConfigStruct_t* dest, ConfigStruct_t* src){
 		HAL_UART_Transmit(NEXTION_SMALL_UART, (uint8_t*)buffor_to_send, buffor_to_send_size, 20);
 	}*/
   /* USER CODE END EEPROM_Save */
+
+/**
+ * @}
+ */

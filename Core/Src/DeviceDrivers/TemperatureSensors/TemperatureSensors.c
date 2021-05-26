@@ -29,6 +29,8 @@ int32_t TemperatureSensor_ReadTemps(TemperatureSensors_t* dev){
 			dev -> temps[i] = (float)temps[i] / 100.0f;
 		}
 	}
+
+	return 0;
 }
 
 /**

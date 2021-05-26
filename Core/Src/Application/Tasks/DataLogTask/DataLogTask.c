@@ -5,6 +5,9 @@
  *      Author: Kacper
  */
 
+/**
+ * @addtogroup DataLogTask
+ */
 #include "DataLogTask.h"
 
 #include "cmsis_os.h"
@@ -45,3 +48,7 @@ void DataLogTask(void* argument)
 	}
   /* USER CODE END DataLog */
 }
+
+/**
+ * @}
+ */

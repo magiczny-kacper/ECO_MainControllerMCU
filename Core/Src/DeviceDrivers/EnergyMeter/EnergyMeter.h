@@ -8,6 +8,12 @@
 #ifndef SRC_DEVICEDRIVERS_ENERGYMETER_ENERGYMETER_H_
 #define SRC_DEVICEDRIVERS_ENERGYMETER_ENERGYMETER_H_
 
+/**
+ * @brief
+ * @defgroup EnergyMeter
+ * @{
+ */
+
 #include <stdint.h>
 #include <string.h>
 #include "main.h"
@@ -82,4 +88,7 @@ float EnergyMeter_ParseFloat (uint8_t* in_data);
 
 int32_t EnergyMeter_Read(EnergyMeter_t* meter);
 
+/**
+ * @}
+ */
 #endif /* SRC_DEVICEDRIVERS_ENERGYMETER_ENERGYMETER_H_ */

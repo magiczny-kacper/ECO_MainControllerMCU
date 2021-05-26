@@ -5,7 +5,9 @@
  *      Author: Kacper
  */
 
-
+/**
+ * @addtogroup CLI
+ */
 #include "CLI.h"
 #include "printf.h"
 
@@ -566,3 +568,7 @@ BaseType_t xCLI_SetDate( char *pcWriteBuffer, size_t xWriteBufferLen, char* pcCo
 	sprintf(pcWriteBuffer, "    Date changed.\r\n");
 	return pdFALSE;
 }
+
+/**
+ * @}
+ */

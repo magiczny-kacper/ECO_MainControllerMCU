@@ -7,15 +7,15 @@
 
 #ifndef SRC_CONFIGEEPROM_CONFIG_H_
 #define SRC_CONFIGEEPROM_CONFIG_H_
-
+/**
+ * @defgroup config
+ *
+ */
 #include "stm32f4xx_hal.h"
 
-
-#define REG_CONFIG_BYTES_LEN 32
-#define ETH_CONFIG_BYTES_LEN 18
-#define CRC_BYTES_LEN 6
-#define CONFIG_BYTES_LEN (REG_CONFIG_BYTES_LEN + ETH_CONFIG_BYTES_LEN + CRC_BYTES_LEN)
-#define MAGIC_WORD 0xAA55
+#define IP_LEN 4
+#define MAC_LEN 6
+#define NTP_URL_LEN 30
 
 typedef enum{
 	CONF_ERR_NOCONF = -5,
@@ -75,18 +75,25 @@ typedef struct __attribute__((packed)){
 } RegulationConfig_t;
 
 typedef struct __attribute__((packed)){
-	uint8_t ipAddress[4];			//32
-	uint8_t subnetMask[4];			//36
-	uint8_t gatewayAddress[4];		//40
-	uint8_t macAddress[6];			//44
+	uint8_t ipAddress[IP_LEN];			//32
+	uint8_t subnetMask[IP_LEN];			//36
+	uint8_t gatewayAddress[IP_LEN];		//40
+	uint8_t macAddress[MAC_LEN];		//44
+	char ntpUrl[NTP_URL_LEN];			//50
 } EthernetConfig_t;
 
 typedef struct  __attribute__((packed)){
 	RegulationConfig_t RegulationConfig;
 	EthernetConfig_t EthernetConfig;
-	uint16_t dummy;					//50
-	uint32_t crc;					//52
+	uint32_t dummy;					//80
+	uint32_t crc;					//84
 } ConfigStruct_t;
+
+#define REG_CONFIG_BYTES_LEN sizeof(RegulationConfig_t)
+#define ETH_CONFIG_BYTES_LEN sizeof(EthernetConfig_t)
+#define CRC_BYTES_LEN 8
+#define CONFIG_BYTES_LEN (REG_CONFIG_BYTES_LEN + ETH_CONFIG_BYTES_LEN + CRC_BYTES_LEN)
+#define MAGIC_WORD 0xAA55
 
 ConfigStatus_t Config_Init(I2C_HandleTypeDef* iic);
 
@@ -104,4 +111,7 @@ ConfigStatus_t Config_GetRegConfig (RegulationConfig_t* config);
 
 ConfigStatus_t Config_Copy (ConfigStruct_t* dest, ConfigStruct_t* src);
 
+/**
+ * @}
+ */
 #endif /* SRC_CONFIGEEPROM_CONFIG_H_ */

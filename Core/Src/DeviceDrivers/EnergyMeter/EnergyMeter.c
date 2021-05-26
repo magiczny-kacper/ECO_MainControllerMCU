@@ -5,11 +5,13 @@
  *      Author: Kacper
  */
 
+/**
+ * @addtogroup EnergyMeter
+ * @{
+ */
+
 #include "EnergyMeter.h"
 #include "semphr.h"
-
-static ModbusRTUMaster_t* mb;
-static SemaphoreHandle_t ModbusMutex;
 
 void EnergyMeter_Init(EnergyMeter_t* meter, ModbusRTUMaster_t* mbPort, uint8_t address){
 	if(mbPort != NULL){
@@ -60,3 +62,7 @@ int32_t EnergyMeter_Read(EnergyMeter_t* meter){
 
 	return retval;
 }
+
+/**
+ * @}
+ */

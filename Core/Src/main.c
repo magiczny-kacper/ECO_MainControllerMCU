@@ -171,9 +171,6 @@ void DataLogTask(void *argument);
 void ConfigSaveTmr(void *argument);
 
 /* USER CODE BEGIN PFP */
-void Nextion1_DataRcv (void);
-void Nextion2_DataRcv (void);
-float fModbusParseFloat (uint8_t*);
 void ModifyEEPROMStruct (uint32_t data, int32_t value);
 
 /* USER CODE END PFP */

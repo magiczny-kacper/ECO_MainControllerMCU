@@ -8,6 +8,10 @@
 #ifndef SRC_TASKS_DATALOGTASK_DATALOGTASK_H_
 #define SRC_TASKS_DATALOGTASK_DATALOGTASK_H_
 
+/**
+ * @defgroup DataLogTask
+ *
+ */
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,4 +22,7 @@ void FLASH_ChipDeselect(void);
 
 void DataLogTask(void* argument);
 
+/**
+ * @}
+ */
 #endif /* SRC_TASKS_DATALOGTASK_DATALOGTASK_H_ */
