@@ -1,0 +1,9 @@
+[submodule "Common/external/mcuboot"]
+	path = Common/external/mcuboot
+	url = git@github.com:mcu-tools/mcuboot.git
+[submodule "Common/external/printf"]
+	path = Common/external/printf
+	url = git@github.com:mpaland/printf.git
+[submodule "Common/external/RingBuffer"]
+	path = Common/external/RingBuffer
+	url = git@github.com:magiczny-kacper/RingBuffer.git
