@@ -13,6 +13,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     }
     else if(USART2 == huart->Instance) // Debug port
     {
+        
     }
     else if(USART3 == huart->Instance) // Modbus RS485 port
     {

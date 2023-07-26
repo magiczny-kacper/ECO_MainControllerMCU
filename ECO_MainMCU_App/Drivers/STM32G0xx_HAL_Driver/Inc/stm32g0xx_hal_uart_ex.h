@@ -17,8 +17,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef STM32G0xx_HAL_UART_EX_H
-#define STM32G0xx_HAL_UART_EX_H
+#ifndef STM32G0XX_HAL_UART_EX_H_
+#define STM32G0XX_HAL_UART_EX_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -767,5 +767,5 @@ HAL_UART_RxEventTypeTypeDef HAL_UARTEx_GetRxEventType(UART_HandleTypeDef *huart)
 }
 #endif
 
-#endif /* STM32G0xx_HAL_UART_EX_H */
+#endif /* STM32G0XX_HAL_UART_EX_H_ */
 

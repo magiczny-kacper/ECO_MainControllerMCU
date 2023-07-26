@@ -345,11 +345,6 @@ void DisplayTask(void const * argument)
   /* USER CODE END UpdateLCD */
 }
 
-void Nextion_DataReceived_Callback(Nextion_t* display, )
-{
-
-}
-
 void NextionBig_DataRcv (void){
     uint8_t stopbyte = 0;
     uint8_t i = 0;
