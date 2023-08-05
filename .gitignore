@@ -3,3 +3,7 @@ build
 .vscode
 .settings
 */target
+*/.venv
+**/__pycache__
+**/*.bin
+*.bin
