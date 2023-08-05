@@ -1,0 +1,45 @@
+syntax = "proto2";
+
+package swdl;
+
+message FrameHeader {
+    enum FrameId {
+        INFO_FRAME = 0xA0;
+        CHUNK_FRAME = 0xB5;
+    }
+
+    optional FrameId id = 1;
+}
+
+message InfoFrame {
+    enum BlockId {
+        MCU_APPLICATION = 0x00;
+        SMALL_HMI_APPLICATION = 0x01;
+        BIG_HMI_APPLICATION = 0x02;
+    }
+
+    optional BlockId block_id = 1;
+    optional fixed32 file_size = 2;
+}
+
+message DataFrame {
+    optional uint32 size = 1;
+    optional bytes chunk = 2;
+    optional fixed32 crc = 3;
+}
+
+message SWDLFrame {
+    optional FrameHeader header = 1;
+    optional InfoFrame info = 2;
+    optional DataFrame data = 3;
+}
+
+message ResponseFrame {
+    enum Status {
+        FRAME_CORRUPTED = 0x00;
+        OK = 0xAA;
+        NOT_OK = 0x55;
+    }
+
+    optional Status status = 1;
+}
