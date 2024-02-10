@@ -52,7 +52,7 @@
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 
 SEARCH_DIR(..)
-INCLUDE "common/linker/memory-sections.ld"
+INCLUDE "memory-sections.ld"
 
 /* Entry Point */
 ENTRY(Reset_Handler)
